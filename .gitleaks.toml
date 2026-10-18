@@ -7,4 +7,6 @@ description = "files written by tools at run time, never committed"
 paths = [
   '''bi/exports/hyperd[^/]*\.log''',  # the Tableau Hyper process's own log (session key hashes); git-ignored
   '''\.demo/.*''',  # local demo output; git-ignored
+  '''bi/exports/[^/]*\.(csv|parquet)''',  # mart exports of public CMS data, git-ignored; drug names such as
+                                          # "Olanzapine-Fluoxetine" match the generic-api-key entropy rule
 ]

@@ -1,0 +1,29 @@
+# Two targets, same SQL. `emulator` is the local fakesnow server (make up, tests, CI); `snowflake` is a real
+# account configured entirely by environment variables (nothing secret in this file).
+rx:
+  target: "{{ env_var('DBT_TARGET', 'emulator') }}"
+  outputs:
+    emulator:
+      type: snowflake
+      account: fakesnow
+      user: fake
+      password: snow
+      host: "{{ env_var('SNOWFLAKE_HOST', '127.0.0.1') }}"
+      port: "{{ env_var('SNOWFLAKE_PORT', '8085') | int }}"
+      protocol: http
+      database: RX
+      warehouse: RX_WH
+      schema: ANALYTICS
+      threads: 4
+    snowflake:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      # Key-pair sign-in: Snowflake refuses password-only sign-in for service users.
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_FILE') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'RX_TRANSFORMER') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'RX') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'RX_WH') }}"
+      schema: ANALYTICS
+      threads: 8
+      query_tag: medicare-rx-analytics

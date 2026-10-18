@@ -1,0 +1,32 @@
+version: 2
+
+sources:
+  - name: raw
+    database: RX
+    schema: RAW
+    description: Raw CMS data API pages, one VARIANT record per row, loaded by `rx load`.
+    loaded_at_field: loaded_at
+    freshness:
+      warn_after: { count: 45, period: day }
+      error_after: { count: 400, period: day }
+    tables:
+      - name: partd_prescriber_drug
+        identifier: PARTD_PRESCRIBER_DRUG
+        description: >
+          Medicare Part D Prescribers by Provider and Drug, Florida, data years 2022-2024
+          (data.cms.gov). One record per prescriber (NPI), brand name and generic name.
+        columns:
+          - name: record
+            data_tests: [not_null]
+          - name: data_year
+            data_tests:
+              - not_null
+              - accepted_values: { values: [2022, 2023, 2024], quote: false }
+      - name: partd_spending_by_drug
+        identifier: PARTD_SPENDING_BY_DRUG
+        description: >
+          Medicare Part D Spending by Drug (national), 2024 release: spending, claims and unit prices for 2020-2024
+          per brand, generic and manufacturer ("Overall" rows aggregate the manufacturers).
+        columns:
+          - name: record
+            data_tests: [not_null]

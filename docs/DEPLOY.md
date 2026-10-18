@@ -55,7 +55,10 @@ Everything here needs an account that only its owner can create. Section 1 was r
 
 ## 3. Tableau Public (free account)
 
-The published dashboard was built in the browser (Tableau Public's web editor reads CSV, not `.hyper`):
+Published on 2026-10-18:
+[Florida Medicare Part D prescribing, 2022-2024](https://public.tableau.com/app/profile/tajaddin.gafarov/viz/FloridaMedicarePartDprescribing2022-2024/FloridaMedicarePartDprescribing2022-2024).
+It was built in the browser (Tableau Public's web editor reads CSV, not `.hyper`); publish as soon as it is
+built, because an idle editor session expires and drops uploaded files:
 
 1. `python scripts/make_tableau_public.py` writes three tidy CSVs from the marts to `bi/tableau-public/`: GLP-1
    claims by drug and year, opioid share of claims in the 15 largest cities (2024), and the top 10 drugs by 2024

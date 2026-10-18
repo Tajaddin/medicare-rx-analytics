@@ -14,7 +14,7 @@ Power BI and Tableau, with the run monitored in Prometheus and Grafana.
 | Load, build, export | **257 s end to end**: load 165 s (about 50 s a year), dbt 83 s, export 5 s, on a local Snowflake emulator | [`pipeline-run.json`](reports/pipeline-run.json) |
 | On Snowflake (trial account, AWS us-east-2, X-Small warehouse) | The same run as the key-pair service user: **831 s end to end** (load 642 s, mostly uploading 3.2 GB of pages from a home connection; dbt 88 s; export 30 s), **49 of 49 dbt nodes pass**, every mart **equal to the emulator's** (row counts and 44 numeric column sums, within 2e-7), **0.13 credits** | [`reports/snowflake/`](reports/snowflake) |
 | Data quality | **49 of 49 dbt nodes pass** (1 seed, 11 models, 37 tests) on the full data | [`dbt-build.json`](reports/dbt-build.json) |
-| BI | Tableau extract **reads back equal** to all 6 marts (row counts and every numeric column's sum); the Power BI project opens and refreshes in Power BI Desktop | [`exports.json`](reports/exports.json), [screenshots](docs/img) |
+| BI | Tableau extract **reads back equal** to all 6 marts (row counts and every numeric column's sum); the Power BI project opens and refreshes in Power BI Desktop; a [**live Tableau Public dashboard**](https://public.tableau.com/app/profile/tajaddin.gafarov/viz/FloridaMedicarePartDprescribing2022-2024/FloridaMedicarePartDprescribing2022-2024) shows GLP-1 growth, opioid share by city and the costliest drugs | [`exports.json`](reports/exports.json), [screenshots](docs/img) |
 | A bug the data found | Name patterns had put **apomorphine** (Parkinson's) in opioids, **Contrave and Relistor** in addiction treatment and **insulin syringes** in insulin; classes are now per product, follow CDC's opioid definitions, and 23 reviewed edge cases are pinned by a test | [ADR 0004](docs/adr/0004-drug-classes-per-product-from-reviewed-rules.md) |
 
 The emulator timings are from one desktop (Intel i5-13600KF, WSL2 with 15.5 GB) against
@@ -89,7 +89,8 @@ Validated and scanned in CI, and applied to a Snowflake trial account on 2026-10
   about Snowflake itself.
 - Part D only, Florida prescribers only, rows with 11+ claims only (CMS suppression); costs are gross.
 - Drug classes cover nine tracked classes by reviewed rules; new products need review each year.
-- The Tableau workbook is not published yet (needs a Tableau Public account).
+- The Tableau Public dashboard is built from CSV snapshots of the marts (`bi/tableau-public/`), so it does not
+  refresh with the pipeline; rerun `scripts/make_tableau_public.py` and republish after a new load.
 
 ## How it was built
 

@@ -1,0 +1,10 @@
+# gitleaks: the default rules. Allowlist only what is provably not a secret.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "files written by tools at run time, never committed"
+paths = [
+  '''bi/exports/hyperd[^/]*\.log''',  # the Tableau Hyper process's own log (session key hashes); git-ignored
+  '''\.demo/.*''',  # local demo output; git-ignored
+]

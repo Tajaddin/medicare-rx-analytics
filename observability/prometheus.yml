@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 30s
+
+rule_files:
+  - alert_rules.yml
+
+scrape_configs:
+  # Batch runs push their metrics (`rx metrics`); honor_labels keeps the job label the run pushed.
+  - job_name: pushgateway
+    honor_labels: true
+    static_configs:
+      - targets: ["pushgateway:9091"]

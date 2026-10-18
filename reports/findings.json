@@ -1,0 +1,119 @@
+{
+  "generated_at": "2026-10-18T09:40:48+00:00",
+  "source": "bi/exports (marts from the 2022-2024 Florida Part D prescriber-drug files)",
+  "note": "drug cost is gross Part D spending before manufacturer rebates",
+  "florida_total": {
+    "2022": {
+      "drug_cost": 13609680855.57,
+      "claims": 103073266,
+      "cost_per_claim": 132.04
+    },
+    "2023": {
+      "drug_cost": 15598876196.17,
+      "claims": 108136489,
+      "cost_per_claim": 144.25
+    },
+    "2024": {
+      "drug_cost": 16838937917.76,
+      "claims": 113582265,
+      "cost_per_claim": 148.25
+    }
+  },
+  "drug_cost_growth": {
+    "2022_to_2024": 0.2373
+  },
+  "class_share_of_cost": {
+    "2024": {
+      "diabetes_supply": 0.0024,
+      "doac_anticoagulant": 0.116,
+      "glp1_receptor_agonist": 0.0998,
+      "insulin": 0.0185,
+      "opioid_analgesic": 0.0094,
+      "opioid_antitussive": 0.0,
+      "opioid_use_disorder": 0.0008,
+      "other": 0.6823,
+      "sglt2_inhibitor": 0.0647,
+      "statin": 0.0062
+    }
+  },
+  "glp1": {
+    "claims": {
+      "2022": 483851,
+      "2023": 897524,
+      "2024": 1324004
+    },
+    "drug_cost": {
+      "2022": 674286812.59,
+      "2023": 1219734856.76,
+      "2024": 1680642641.97
+    },
+    "claims_growth": 1.7364,
+    "cost_growth": 1.4925,
+    "top_products_2024_by_claims": {
+      "Semaglutide": 750695,
+      "Tirzepatide": 365714,
+      "Dulaglutide": 181865
+    }
+  },
+  "opioids": {
+    "2022": {
+      "opioid_analgesic_share_of_claims": 0.0418,
+      "oud_buprenorphine_claims_per_opioid_analgesic_claim": 0.02
+    },
+    "2023": {
+      "opioid_analgesic_share_of_claims": 0.0391,
+      "oud_buprenorphine_claims_per_opioid_analgesic_claim": 0.0207
+    },
+    "2024": {
+      "opioid_analgesic_share_of_claims": 0.0374,
+      "oud_buprenorphine_claims_per_opioid_analgesic_claim": 0.0218
+    }
+  },
+  "generic_opportunity": {
+    "upper_bound_2024": 502534866.74,
+    "top_2024": [
+      {
+        "generic_name": "Lenalidomide",
+        "drug_class": "other",
+        "brand_share_of_fills": 0.6773,
+        "savings_upper_bound": 77704125.6
+      },
+      {
+        "generic_name": "Cyclosporine",
+        "drug_class": "other",
+        "brand_share_of_fills": 0.8157,
+        "savings_upper_bound": 63968421.34
+      },
+      {
+        "generic_name": "Insulin Degludec",
+        "drug_class": "insulin",
+        "brand_share_of_fills": 0.9989,
+        "savings_upper_bound": 60984946.99
+      },
+      {
+        "generic_name": "Bimatoprost",
+        "drug_class": "other",
+        "brand_share_of_fills": 0.9771,
+        "savings_upper_bound": 45177284.58
+      },
+      {
+        "generic_name": "Aripiprazole",
+        "drug_class": "other",
+        "brand_share_of_fills": 0.0392,
+        "savings_upper_bound": 30806005.77
+      }
+    ]
+  },
+  "products_per_class": {
+    "diabetes_supply": 111,
+    "doac_anticoagulant": 5,
+    "glp1_receptor_agonist": 12,
+    "insulin": 65,
+    "opioid_analgesic": 50,
+    "opioid_antitussive": 2,
+    "opioid_use_disorder": 6,
+    "other": 2440,
+    "sglt2_inhibitor": 14,
+    "statin": 19
+  }
+}

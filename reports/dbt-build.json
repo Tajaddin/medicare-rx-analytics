@@ -1,0 +1,257 @@
+{
+  "generated_at": "2026-10-18T09:21:03.191308Z",
+  "dbt_version": "1.12.6",
+  "elapsed_seconds": 79.86,
+  "counts": {
+    "test_pass": 37,
+    "seed_success": 1,
+    "model_success": 11
+  },
+  "nodes": [
+    {
+      "node": "model.rx.dim_drug",
+      "status": "success",
+      "seconds": 29.87
+    },
+    {
+      "node": "model.rx.fct_prescriber_drug_year",
+      "status": "success",
+      "seconds": 30.11
+    },
+    {
+      "node": "model.rx.int_drug_class",
+      "status": "success",
+      "seconds": 0.09
+    },
+    {
+      "node": "model.rx.int_prescriber_drug",
+      "status": "success",
+      "seconds": 0.07
+    },
+    {
+      "node": "model.rx.mart_drug_spend_trend",
+      "status": "success",
+      "seconds": 38.48
+    },
+    {
+      "node": "model.rx.mart_generic_opportunity",
+      "status": "success",
+      "seconds": 15.76
+    },
+    {
+      "node": "model.rx.mart_glp1_growth",
+      "status": "success",
+      "seconds": 25.15
+    },
+    {
+      "node": "model.rx.mart_opioid_by_city",
+      "status": "success",
+      "seconds": 21.85
+    },
+    {
+      "node": "model.rx.mart_specialty_class_year",
+      "status": "success",
+      "seconds": 21.8
+    },
+    {
+      "node": "model.rx.stg_prescriber_drug",
+      "status": "success",
+      "seconds": 0.12
+    },
+    {
+      "node": "model.rx.stg_spending_by_drug",
+      "status": "success",
+      "seconds": 1.31
+    },
+    {
+      "node": "seed.rx.drug_classes",
+      "status": "success",
+      "seconds": 0.87
+    },
+    {
+      "node": "test.rx.accepted_values_stg_prescriber_drug_state__FL.c324cfc97e",
+      "status": "pass",
+      "seconds": 5.87
+    },
+    {
+      "node": "test.rx.accepted_values_stg_spending_by_drug_data_year__False__2020__2021__2022__2023__2024.27a68fc9a9",
+      "status": "pass",
+      "seconds": 0.42
+    },
+    {
+      "node": "test.rx.at_least_mart_drug_spend_trend_cost_per_claim__0.1c6f00d10b",
+      "status": "pass",
+      "seconds": 0.18
+    },
+    {
+      "node": "test.rx.at_least_mart_generic_opportunity_savings_upper_bound__0.68ccc7c95a",
+      "status": "pass",
+      "seconds": 0.17
+    },
+    {
+      "node": "test.rx.at_least_mart_opioid_by_city_prescribers__20.ce9501edfa",
+      "status": "pass",
+      "seconds": 0.44
+    },
+    {
+      "node": "test.rx.at_least_stg_prescriber_drug_total_beneficiaries__11.10c8ad3755",
+      "status": "pass",
+      "seconds": 10.92
+    },
+    {
+      "node": "test.rx.at_least_stg_prescriber_drug_total_claims__11.d6fddff8c1",
+      "status": "pass",
+      "seconds": 14.44
+    },
+    {
+      "node": "test.rx.at_least_stg_prescriber_drug_total_drug_cost__0.7d3e4f4ff4",
+      "status": "pass",
+      "seconds": 8.31
+    },
+    {
+      "node": "test.rx.between_mart_generic_opportunity_brand_share_of_fills__1__0.0892bbb098",
+      "status": "pass",
+      "seconds": 0.18
+    },
+    {
+      "node": "test.rx.between_mart_opioid_by_city_opioid_share_of_claims__1__0.7f93657bd5",
+      "status": "pass",
+      "seconds": 0.39
+    },
+    {
+      "node": "test.rx.between_mart_specialty_class_year_share_of_specialty_claims__1__0.3707b4ced1",
+      "status": "pass",
+      "seconds": 0.18
+    },
+    {
+      "node": "test.rx.drug_class_edge_cases",
+      "status": "pass",
+      "seconds": 2.72
+    },
+    {
+      "node": "test.rx.matches_pattern_stg_prescriber_drug_npi___0_9_10_.1f519dda13",
+      "status": "pass",
+      "seconds": 2.35
+    },
+    {
+      "node": "test.rx.not_null_stg_prescriber_drug_generic_name.2322281f89",
+      "status": "pass",
+      "seconds": 2.68
+    },
+    {
+      "node": "test.rx.not_null_stg_prescriber_drug_npi.72be025931",
+      "status": "pass",
+      "seconds": 2.54
+    },
+    {
+      "node": "test.rx.not_null_stg_prescriber_drug_total_claims.48c509e322",
+      "status": "pass",
+      "seconds": 6.57
+    },
+    {
+      "node": "test.rx.not_null_stg_prescriber_drug_total_drug_cost.7b5d908ea0",
+      "status": "pass",
+      "seconds": 7.4
+    },
+    {
+      "node": "test.rx.not_null_stg_spending_by_drug_total_spending.38c63cd552",
+      "status": "pass",
+      "seconds": 0.87
+    },
+    {
+      "node": "test.rx.numbers_parse",
+      "status": "pass",
+      "seconds": 5.57
+    },
+    {
+      "node": "test.rx.raw_rows_reach_staging",
+      "status": "pass",
+      "seconds": 0.32
+    },
+    {
+      "node": "test.rx.relationships_int_drug_class_drug_class__drug_class__ref_drug_classes_.7202e8d1d4",
+      "status": "pass",
+      "seconds": 2.72
+    },
+    {
+      "node": "test.rx.row_count_matches_fct_prescriber_drug_year_ref_stg_prescriber_drug_.7ff9e002cb",
+      "status": "pass",
+      "seconds": 0.28
+    },
+    {
+      "node": "test.rx.source_accepted_values_raw_partd_prescriber_drug_data_year__False__2022__2023__2024.d3f8675911",
+      "status": "pass",
+      "seconds": 0.36
+    },
+    {
+      "node": "test.rx.source_not_null_raw_partd_prescriber_drug_data_year.6054c64fd7",
+      "status": "pass",
+      "seconds": 0.25
+    },
+    {
+      "node": "test.rx.source_not_null_raw_partd_prescriber_drug_record.47cd7436ff",
+      "status": "pass",
+      "seconds": 0.3
+    },
+    {
+      "node": "test.rx.source_not_null_raw_partd_spending_by_drug_record.40a89c794d",
+      "status": "pass",
+      "seconds": 0.26
+    },
+    {
+      "node": "test.rx.totals_match_mart_drug_spend_trend_drug_cost__total_drug_cost__ref_stg_prescriber_drug_.b4ff121428",
+      "status": "pass",
+      "seconds": 11.63
+    },
+    {
+      "node": "test.rx.unique_combination_dim_drug_brand_name__generic_name.1373e6f858",
+      "status": "pass",
+      "seconds": 0.21
+    },
+    {
+      "node": "test.rx.unique_combination_fct_prescriber_drug_year_npi__brand_name__generic_name__data_year.e588e96896",
+      "status": "pass",
+      "seconds": 2.66
+    },
+    {
+      "node": "test.rx.unique_combination_int_drug_class_brand_name__generic_name.ebc45232e6",
+      "status": "pass",
+      "seconds": 2.63
+    },
+    {
+      "node": "test.rx.unique_combination_mart_drug_spend_trend_generic_name__drug_class__data_year.3cacde0ed5",
+      "status": "pass",
+      "seconds": 0.38
+    },
+    {
+      "node": "test.rx.unique_combination_mart_generic_opportunity_generic_name__drug_class__data_year.d89e35505d",
+      "status": "pass",
+      "seconds": 0.19
+    },
+    {
+      "node": "test.rx.unique_combination_mart_glp1_growth_generic_name__prescriber_type__data_year.02ff57638a",
+      "status": "pass",
+      "seconds": 0.4
+    },
+    {
+      "node": "test.rx.unique_combination_mart_opioid_by_city_city__data_year.d81f0c4d12",
+      "status": "pass",
+      "seconds": 0.27
+    },
+    {
+      "node": "test.rx.unique_combination_mart_specialty_class_year_prescriber_type__drug_class__data_year.9650d4cd0f",
+      "status": "pass",
+      "seconds": 0.13
+    },
+    {
+      "node": "test.rx.unique_combination_stg_prescriber_drug_npi__brand_name__generic_name__data_year.845a33a109",
+      "status": "pass",
+      "seconds": 4.78
+    },
+    {
+      "node": "test.rx.unique_combination_stg_spending_by_drug_brand_name__generic_name__data_year.695b188981",
+      "status": "pass",
+      "seconds": 2.09
+    }
+  ]
+}

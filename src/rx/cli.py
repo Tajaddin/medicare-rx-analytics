@@ -1,4 +1,4 @@
-"""`rx <command>`: emulator, plan, bootstrap, load, export."""
+"""`rx <command>`: emulator, bootstrap, load, export, metrics. Bash (scripts/run_pipeline.sh) orchestrates them with dbt."""
 
 from __future__ import annotations
 
@@ -121,6 +121,27 @@ def export(hyper: bool = True) -> None:
     settings.reports_dir.mkdir(parents=True, exist_ok=True)
     (settings.reports_dir / "exports.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     typer.echo(json.dumps(report["marts"]))
+
+
+@app.command()
+def metrics(  # noqa: PLR0917 - one CLI option per input; Typer maps parameters to options
+    run_report: Path = Path("reports/pipeline-run.json"),
+    dbt_results: Path = Path("dbt/target/run_results.json"),
+    exports_report: Path = Path("reports/exports.json"),
+    pushgateway: Annotated[str | None, typer.Option(envvar="RX_PUSHGATEWAY", help="host:port of a Pushgateway")] = None,
+    textfile: Annotated[Path | None, typer.Option(help="write a node_exporter textfile instead or as well")] = None,
+    dbt_report: Annotated[Path | None, typer.Option(help="also write a compact dbt summary here")] = None,
+) -> None:
+    """Publish the last run as Prometheus metrics (Pushgateway and/or textfile)."""
+    from prometheus_client import generate_latest
+
+    from rx.metrics import publish
+
+    reg = publish(
+        run_report, dbt_results, exports_report, pushgateway=pushgateway, textfile=textfile, dbt_report_path=dbt_report
+    )
+    if not pushgateway and not textfile:
+        typer.echo(generate_latest(reg).decode())
 
 
 if __name__ == "__main__":

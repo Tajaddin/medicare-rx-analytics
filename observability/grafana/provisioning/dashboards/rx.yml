@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: rx
+    folder: Medicare Rx
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards

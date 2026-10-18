@@ -1,0 +1,32 @@
+{
+  "measured_at": "2026-10-18T09:21:09Z",
+  "run": "reports/pipeline-run.json (full 2022-2024 Florida load, SKIP_EXTRACT=1, fresh emulator)",
+  "machine": {
+    "cpu": "Intel Core i5-13600KF, 14 cores / 20 threads",
+    "memory": "32 GB; WSL2 VM limited to 15.5 GB",
+    "os": "Windows 11 Pro 26300, WSL2 Ubuntu 24.04",
+    "data_disk": "WSL ext4 (raw pages); repository on an NTFS drive mounted in WSL"
+  },
+  "software": {
+    "python": "3.12.3",
+    "fakesnow": "0.11.22 (server mode, in memory)",
+    "dbt_core": "1.12.6",
+    "dbt_snowflake": "1.12.3"
+  },
+  "emulator_memory": {
+    "how": "VmHWM and VmRSS from /proc/<fakesnow pid>/status after the run",
+    "rss_before_kb": 189168,
+    "peak_kb": 9305712,
+    "rss_after_kb": 6332036
+  },
+  "pipeline_processes_max_rss_kb": 234484,
+  "extraction": {
+    "log": "reports/extract/extract-2026-10-18.log",
+    "started": "2026-10-18T07:58:53Z",
+    "finished": "2026-10-18T08:24:08Z",
+    "seconds": 1515,
+    "pages": 1179,
+    "retries": 0,
+    "bytes_on_disk": "3.2 GB of JSON"
+  }
+}

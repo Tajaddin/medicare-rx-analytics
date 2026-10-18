@@ -21,4 +21,8 @@ something local?
 ## Consequences
 
 - Every CI run exercises the real connector, dbt-snowflake and the real SQL, with no credentials.
+- The emulator is in memory: its server mode ignores the `-d` persistence option, so a restart empties it.
+  A full three-year run peaked at 9.3 GB of emulator memory (measured from `/proc/<pid>/status`); a second
+  full reload in the same process doubled it, because DuckDB does not give back the memory of deleted rows.
+  Restart it between full reloads.
 - Emulator timings say nothing about Snowflake's. The trial-account run (#12) is the only way to get those.

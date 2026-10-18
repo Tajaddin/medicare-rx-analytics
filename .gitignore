@@ -1,0 +1,35 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage.xml
+.coverage
+
+.env
+.env.*
+!.env.example
+
+# CMS extracts (3.4 GB of JSON) and the emulator's DuckDB files; rebuilt by `make extract load`
+data/
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+logs/
+
+# BI outputs are rebuilt from the marts; the Power BI project and the Tableau spec are source
+bi/exports/*
+!bi/exports/README.md
+*.hyper
+hyperd*.log
+bi/powerbi/**/.pbi/localSettings.json
+bi/powerbi/**/.pbi/cache.abf
+
+infra/terraform/.terraform/
+infra/terraform/*.tfstate*
+infra/terraform/terraform.tfvars
+.idea/
+.vscode/
+.demo/
+.ci/

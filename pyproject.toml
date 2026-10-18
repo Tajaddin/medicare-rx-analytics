@@ -1,0 +1,69 @@
+[project]
+name = "medicare-rx-analytics"
+version = "0.1.0"
+description = "Florida Medicare Part D prescribing analytics: Bash extraction, Snowflake (raw VARIANT to dbt marts), Power BI and Tableau"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12,<3.13"
+authors = [{ name = "Tajaddin Gafarov", email = "gafarovtajaddin@gmail.com" }]
+dependencies = [
+  "snowflake-connector-python>=4.0",
+  "dbt-core==1.12.6",
+  "dbt-snowflake==1.12.3",
+  "pandas>=2.3,<3",
+  "pyarrow>=21",
+  "tableauhyperapi>=0.0.26963",
+  "typer>=0.20",
+  "structlog>=25.4",
+  "prometheus-client>=0.23",
+  "pydantic-settings>=2.11",
+]
+
+[project.optional-dependencies]
+# The local Snowflake emulator (DuckDB underneath). Used by `make up`, the tests and CI; never in production.
+emulator = ["fakesnow[server]==0.11.22"]
+dev = [
+  "pytest>=8.4",
+  "pytest-cov>=7",
+  "ruff>=0.14",
+  "mypy>=1.18",
+  "pandas-stubs>=2.3",
+  "pip-audit>=2.9",
+  "check-jsonschema>=0.34",
+]
+
+[project.scripts]
+rx = "rx.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rx"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "S", "W", "PL", "RUF", "SIM", "C4", "PT"]
+ignore = ["PLR0913", "PLR2004", "S101", "S603", "S607", "E501", "PLC0415", "S608"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "PLR"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+check_untyped_defs = true
+files = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.coverage.run]
+source = ["src/rx"]
+omit = ["src/rx/cli.py"]

@@ -1,0 +1,290 @@
+{
+  "labels": [
+    {
+      "name": "story",
+      "color": "1d76db",
+      "description": "User story: delivers something a user of the system can see"
+    },
+    {
+      "name": "chore",
+      "color": "c5def5",
+      "description": "Engineering work with no user-visible change"
+    },
+    {
+      "name": "spike",
+      "color": "fbca04",
+      "description": "Time-boxed investigation that ends in a decision"
+    },
+    {
+      "name": "bug",
+      "color": "d73a4a",
+      "description": "Something the system got wrong"
+    },
+    {
+      "name": "area:ingest",
+      "color": "0e8a16",
+      "description": "Bash and Python extraction and loading"
+    },
+    {
+      "name": "area:dbt",
+      "color": "ff694b",
+      "description": "dbt models and tests on Snowflake"
+    },
+    {
+      "name": "area:bi",
+      "color": "f2c811",
+      "description": "Power BI and Tableau"
+    },
+    {
+      "name": "area:infra",
+      "color": "006b75",
+      "description": "Terraform, CI, Docker"
+    },
+    {
+      "name": "area:docs",
+      "color": "bfdadc",
+      "description": "README, ADRs, data dictionary"
+    },
+    {
+      "name": "points:1",
+      "color": "ededed",
+      "description": "Story points"
+    },
+    {
+      "name": "points:2",
+      "color": "ededed",
+      "description": "Story points"
+    },
+    {
+      "name": "points:3",
+      "color": "ededed",
+      "description": "Story points"
+    },
+    {
+      "name": "points:5",
+      "color": "ededed",
+      "description": "Story points"
+    },
+    {
+      "name": "points:8",
+      "color": "ededed",
+      "description": "Story points"
+    },
+    {
+      "name": "blocked:account",
+      "color": "b60205",
+      "description": "Needs an account or credential only the owner can create"
+    }
+  ],
+  "milestones": [
+    {
+      "title": "Sprint 1 - Ingestion",
+      "due": "2026-10-20",
+      "description": "Goal: Florida Medicare Part D prescribing (2022-2024) and national drug spending land in Snowflake as raw JSON, by tested Bash automation that resumes and verifies."
+    },
+    {
+      "title": "Sprint 2 - dbt models",
+      "due": "2026-10-21",
+      "description": "Goal: staging, intermediate and mart models with tests and documentation run green on Snowflake semantics (fakesnow locally, a trial account when available)."
+    },
+    {
+      "title": "Sprint 3 - BI",
+      "due": "2026-10-22",
+      "description": "Goal: a Power BI project (TMDL + PBIR) and Tableau Hyper extracts built from the marts, with the questions they answer written down."
+    },
+    {
+      "title": "Sprint 4 - Release",
+      "due": "2026-10-23",
+      "description": "Goal: Terraform for Snowflake, CI green, measured run times, README and data dictionary."
+    },
+    {
+      "title": "Backlog",
+      "due": null,
+      "description": "Not scheduled: work that needs an account or a later sprint."
+    }
+  ],
+  "issues": [
+    {
+      "title": "Repository scaffold, CI skeleton and dev environment",
+      "milestone": "Sprint 1 - Ingestion",
+      "labels": [
+        "chore",
+        "area:infra",
+        "points:2"
+      ],
+      "body": "As a contributor, I want one command for setup and CI that lints and tests every push.\n\n**Acceptance criteria**\n- [ ] uv, dbt, shellcheck and bats run in CI\n- [ ] secret scan before every push and in CI"
+    },
+    {
+      "title": "Extract CMS Part D data with resumable, paged Bash",
+      "milestone": "Sprint 1 - Ingestion",
+      "labels": [
+        "story",
+        "area:ingest",
+        "points:5"
+      ],
+      "body": "As a data engineer, I want a Bash extractor that pages through the CMS data API with retries, rate limiting and resume, so that a dropped connection never means starting over.\n\n**Acceptance criteria**\n- [ ] `set -euo pipefail`, shellcheck clean, bats tests against a local fake API\n- [ ] row counts verified against the API's own count"
+    },
+    {
+      "title": "Load raw JSON into Snowflake (stage, COPY INTO, VARIANT)",
+      "milestone": "Sprint 1 - Ingestion",
+      "labels": [
+        "story",
+        "area:ingest",
+        "points:5"
+      ],
+      "body": "As an analytics engineer, I want the raw pages in a VARIANT column with load metadata, so that dbt models can be rebuilt from the raw layer at any time.\n\n**Acceptance criteria**\n- [ ] idempotent loads (re-running a year replaces it)\n- [ ] works against fakesnow locally and a real account by configuration only"
+    },
+    {
+      "title": "Spike: can dbt-snowflake run against a local Snowflake emulator?",
+      "milestone": "Sprint 1 - Ingestion",
+      "labels": [
+        "spike",
+        "area:dbt",
+        "points:2"
+      ],
+      "body": "Decide how CI tests Snowflake SQL without an account. Outcome recorded as an ADR."
+    },
+    {
+      "title": "Staging models: typed and deduplicated",
+      "milestone": "Sprint 2 - dbt models",
+      "labels": [
+        "story",
+        "area:dbt",
+        "points:3"
+      ],
+      "body": "As an analyst, I want typed, renamed staging models over the raw VARIANT data, with tests for keys, nulls and accepted values."
+    },
+    {
+      "title": "Marts: prescribing, drug spend, generic opportunity, opioid and GLP-1 trends",
+      "milestone": "Sprint 2 - dbt models",
+      "labels": [
+        "story",
+        "area:dbt",
+        "points:8"
+      ],
+      "body": "As a pharmacy director, I want marts that answer where spend grows, which brand drugs have cheaper generics, how opioid and GLP-1 prescribing move by specialty and county, so that decisions start from one source of truth.\n\n**Acceptance criteria**\n- [ ] every mart has a grain, tests and a description\n- [ ] CMS small-cell suppression respected"
+    },
+    {
+      "title": "Data quality: dbt tests and source freshness",
+      "milestone": "Sprint 2 - dbt models",
+      "labels": [
+        "story",
+        "area:dbt",
+        "points:3"
+      ],
+      "body": "As a data owner, I want tests that fail the run on broken keys or impossible values, and a reconciliation of totals against CMS's published numbers."
+    },
+    {
+      "title": "Power BI project (TMDL semantic model + PBIR report)",
+      "milestone": "Sprint 3 - BI",
+      "labels": [
+        "story",
+        "area:bi",
+        "points:5"
+      ],
+      "body": "As a pharmacy analyst, I want a Power BI report over the marts, kept as text in git, so that changes are reviewed like code.\n\n**Acceptance criteria**\n- [ ] opens in Power BI Desktop and refreshes from the exported marts\n- [ ] report JSON validated against Microsoft's schemas in CI"
+    },
+    {
+      "title": "Tableau Hyper extracts from the marts",
+      "milestone": "Sprint 3 - BI",
+      "labels": [
+        "story",
+        "area:bi",
+        "points:3"
+      ],
+      "body": "As a Tableau user, I want the marts as .hyper extracts built by the pipeline, so that a workbook can be refreshed without a database connection.\n\n**Acceptance criteria**\n- [ ] extracts read back and reconciled with the marts in a test"
+    },
+    {
+      "title": "Terraform for Snowflake (warehouse, database, roles, resource monitor)",
+      "milestone": "Sprint 4 - Release",
+      "labels": [
+        "story",
+        "area:infra",
+        "points:3"
+      ],
+      "body": "As a platform engineer, I want the Snowflake objects and a credit cap as code, so that the trial account cannot overspend.\n\n**Acceptance criteria**\n- [ ] validate, tflint and trivy pass; nothing applied without an account"
+    },
+    {
+      "title": "Measured run times and README",
+      "milestone": "Sprint 4 - Release",
+      "labels": [
+        "chore",
+        "area:docs",
+        "points:3"
+      ],
+      "body": "As a hiring manager, I want the problem, design, results and limits on one page, with every number from a committed file."
+    },
+    {
+      "title": "Run on a Snowflake trial account",
+      "milestone": "Backlog",
+      "labels": [
+        "story",
+        "area:infra",
+        "blocked:account",
+        "points:2"
+      ],
+      "body": "Blocked on the owner creating a Snowflake trial (30 days, $400 of credit, no card). Steps in docs/DEPLOY.md."
+    },
+    {
+      "title": "Publish the Tableau dashboard on Tableau Public",
+      "milestone": "Backlog",
+      "labels": [
+        "story",
+        "area:bi",
+        "blocked:account",
+        "points:2"
+      ],
+      "body": "Blocked on a Tableau Public account. The extracts and the dashboard specification are in bi/tableau/."
+    },
+    {
+      "title": "GitHub Projects board for the sprints",
+      "milestone": "Backlog",
+      "labels": [
+        "chore",
+        "blocked:account",
+        "points:1"
+      ],
+      "body": "The CLI token lacks the `project` scope. After `gh auth refresh -s project`, run `python scripts/agile/sync_backlog.py --board`."
+    },
+    {
+      "title": "Bug: name patterns put apomorphine in opioids, insulin syringes in insulin and Contrave in OUD treatment",
+      "milestone": "Sprint 2 - dbt models",
+      "labels": [
+        "bug",
+        "area:dbt",
+        "points:3"
+      ],
+      "body": "Found by listing every generic name each class pattern matched on the full 2022-2024 data.\n\n**Acceptance criteria**\n- [ ] classes are assigned per product (brand x generic), so Butrans and Belbuca (pain) and Sublocade (OUD) are told apart\n- [ ] exceptions are ordered rules in the seed, each with a reason\n- [ ] a dbt test pins every reviewed edge case\n- [ ] the opioid definitions follow CDC's (cough products and OUD buprenorphine are not analgesics)"
+    },
+    {
+      "title": "Bash orchestration of the whole batch with a run report",
+      "milestone": "Sprint 4 - Release",
+      "labels": [
+        "story",
+        "area:ingest",
+        "points:3"
+      ],
+      "body": "As an operator, I want one command that extracts, loads, builds, exports and publishes metrics, and that writes what happened even when a stage fails.\n\n**Acceptance criteria**\n- [ ] per-stage timings and the failing stage in reports/pipeline-run.json\n- [ ] bats tests for success, failure and extraction\n- [ ] the same script runs locally, in Docker and in CI on the committed sample"
+    },
+    {
+      "title": "Observability: run metrics, alert rules with tests, Grafana dashboard",
+      "milestone": "Sprint 4 - Release",
+      "labels": [
+        "story",
+        "area:infra",
+        "points:3"
+      ],
+      "body": "As an on-call engineer, I want to know when a run failed, went stale, failed data tests or produced an extract that does not match the marts.\n\n**Acceptance criteria**\n- [ ] metrics pushed to a Pushgateway after every run\n- [ ] alert rules with promtool tests and a runbook entry each\n- [ ] a provisioned Grafana dashboard"
+    },
+    {
+      "title": "Docker images and a one-command local stack",
+      "milestone": "Sprint 4 - Release",
+      "labels": [
+        "chore",
+        "area:infra",
+        "points:2"
+      ],
+      "body": "**Acceptance criteria**\n- [ ] `make up` starts the emulator and the monitoring with health checks\n- [ ] the pipeline image runs the batch against it; CI runs this end to end and checks Prometheus"
+    }
+  ]
+}

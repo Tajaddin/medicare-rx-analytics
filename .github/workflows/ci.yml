@@ -49,8 +49,8 @@ jobs:
       - run: shellcheck scripts/*.sh
       - run: bats tests/bats
 
-  dbt:
-    name: load, dbt build and BI exports on the CI sample (fakesnow)
+  pipeline:
+    name: whole pipeline on the CI sample, BI checks
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -62,22 +62,73 @@ jobs:
           nohup uv run fakesnow -s -p 8085 > fakesnow.log 2>&1 &
           for _ in $(seq 1 30); do (echo > /dev/tcp/127.0.0.1/8085) 2>/dev/null && exit 0; sleep 1; done
           cat fakesnow.log; exit 1
-      - name: load the sample of real CMS pages
+      - name: extract (skipped) -> load -> dbt build -> export -> metrics
+        run: uv run bash scripts/run_pipeline.sh
+        env:
+          RX_RAW_DIR: tests/fixtures/pages
+          SKIP_EXTRACT: "1"
+          RX_REPORTS_DIR: .ci/reports
+      - name: the run report says success and the Tableau extract matches
         run: |
-          uv run rx bootstrap
-          uv run rx plan | while IFS=$'\t' read -r dataset year id state; do
-            uv run rx load --dataset "$dataset" --year "$year" --pages "tests/fixtures/pages/$dataset/$year"
-          done
-      - name: dbt build (seed, models, tests)
-        run: cd dbt && DBT_PROFILES_DIR=. uv run dbt build
-      - name: export the marts, verify the Tableau extract
-        run: |
-          uv run rx export
-          python3 -c "import json; r = json.load(open('reports/exports.json')); assert r['hyper']['ok'], r"
+          python3 -c "import json; r = json.load(open('.ci/reports/pipeline-run.json')); assert r['status'] == 'success', r"
+          python3 -c "import json; r = json.load(open('.ci/reports/exports.json')); assert r['hyper']['ok'], r"
+          python3 -c "import json; r = json.load(open('.ci/reports/dbt-build.json')); print(r['counts'])"
       - name: Power BI project equals one regenerated from the exports
         run: uv run python scripts/make_powerbi.py && git diff --exit-code -- bi/powerbi
       - name: Power BI files against Microsoft's JSON schemas
         run: uv run bash scripts/validate_pbir.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: pipeline-reports, path: .ci/reports, retention-days: 14 }
+
+  stack:
+    name: docker compose end to end (make up, pipeline image, Prometheus)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose up -d --build --wait --wait-timeout 300 emulator pushgateway prometheus grafana
+      - name: the sample batch in the pipeline image
+        run: |
+          mkdir -p .demo/reports .demo/exports && chmod 777 .demo/reports .demo/exports
+          RX_HOST_RAW_DIR=./tests/fixtures/pages RX_HOST_REPORTS_DIR=./.demo/reports \
+            RX_HOST_EXPORTS_DIR=./.demo/exports SKIP_EXTRACT=1 docker compose run --rm --build pipeline
+      - name: Prometheus received the run, Grafana has the dashboard
+        run: |
+          q() { curl -fsS --get http://localhost:9096/api/v1/query --data-urlencode "query=$1" |
+                python3 -c 'import json,sys; r=json.load(sys.stdin)["data"]["result"]; print(r[0]["value"][1] if r else "")'; }
+          for _ in $(seq 1 24); do [ "$(q rx_pipeline_last_run_success)" = "1" ] && break; sleep 5; done
+          [ "$(q rx_pipeline_last_run_success)" = "1" ]
+          [ "$(q rx_dbt_failures)" = "0" ]
+          [ "$(q rx_hyper_verified)" = "1" ]
+          curl -fsS "http://localhost:3006/api/search?query=Medicare" | grep -q "rx-pipeline"
+      - if: failure()
+        run: docker compose logs
+
+  alerts:
+    name: promtool rule tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker run --rm -v "$PWD/observability:/w" -w /w --entrypoint promtool prom/prometheus:v3.5.0 test rules alerts_test.yml
+      - run: docker run --rm -v "$PWD/observability:/w" -w /w --entrypoint promtool prom/prometheus:v3.5.0 check config prometheus.yml
+
+  terraform:
+    name: terraform fmt, validate, tflint and trivy
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: "1.16.6" }
+      - run: terraform -chdir=infra/terraform fmt -check -recursive
+      - run: terraform -chdir=infra/terraform init -backend=false -input=false
+      - run: terraform -chdir=infra/terraform validate
+      - uses: terraform-linters/setup-tflint@v4
+        with: { tflint_version: v0.64.0 }
+      - run: tflint --chdir=infra/terraform --minimum-failure-severity=warning
+      - name: trivy IaC scan (high and critical fail)
+        run: |
+          curl -sSfL https://github.com/aquasecurity/trivy/releases/download/v0.76.0/trivy_0.76.0_Linux-64bit.tar.gz | tar -xz trivy
+          ./trivy config --severity HIGH,CRITICAL --exit-code 1 --ignorefile .trivyignore infra/terraform
 
   security:
     name: secrets and dependency audit
@@ -93,3 +144,17 @@ jobs:
         with: { version: "${{ env.UV_VERSION }}" }
       - run: uv sync --locked --all-extras
       - run: uv run pip-audit --skip-editable --progress-spinner off
+
+  images:
+    name: build both images and scan the pipeline image
+    runs-on: ubuntu-24.04
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - run: docker build -f docker/Dockerfile --target pipeline -t rx/pipeline:ci . && docker image ls rx/pipeline:ci --format '{{.Repository}} {{.Size}}'
+      - run: docker build -f docker/Dockerfile --target emulator -t rx/emulator:ci . && docker image ls rx/emulator:ci --format '{{.Repository}} {{.Size}}'
+      - name: trivy image scan (critical fails)
+        run: |
+          curl -sSfL https://github.com/aquasecurity/trivy/releases/download/v0.76.0/trivy_0.76.0_Linux-64bit.tar.gz | tar -xz trivy
+          ./trivy image --severity CRITICAL --exit-code 1 --ignore-unfixed rx/pipeline:ci

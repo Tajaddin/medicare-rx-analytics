@@ -1,0 +1,98 @@
+/// Opioid and OUD-treatment prescribing by city (cities with 20+ prescribers).
+table mart_opioid_by_city
+	lineageTag: ac33060e-66a7-5760-9349-30188dd2ef25
+
+	measure 'Opioid share of claims' = DIVIDE(SUM(mart_opioid_by_city[opioid_claims]), SUM(mart_opioid_by_city[all_claims]))
+		formatString: 0.00%
+		displayFolder: Opioids
+		lineageTag: 450512a4-0548-5470-acf6-a14940f6c9a0
+
+	measure 'OUD treatment per opioid claim' = DIVIDE(SUM(mart_opioid_by_city[oud_treatment_claims]), SUM(mart_opioid_by_city[opioid_claims]))
+		formatString: 0.000
+		displayFolder: Opioids
+		lineageTag: dbc3853a-424e-5154-a636-e4abb44ff371
+
+	column city
+		dataType: string
+		lineageTag: f19e47bc-bb42-5e30-b6a7-e7688e852b71
+		summarizeBy: none
+		sourceColumn: city
+
+	column data_year
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: dbcda033-df35-53ac-96b3-0bac88382db9
+		summarizeBy: none
+		sourceColumn: data_year
+
+	column prescribers
+		dataType: int64
+		formatString: #,0
+		lineageTag: a3282c8f-fade-55f1-96c4-20c5a8dd86c5
+		summarizeBy: sum
+		sourceColumn: prescribers
+
+	column all_claims
+		dataType: double
+		formatString: #,0
+		lineageTag: e00791bb-02c2-585a-a122-a38d7e8030c7
+		summarizeBy: sum
+		sourceColumn: all_claims
+
+	column opioid_claims
+		dataType: double
+		formatString: #,0
+		lineageTag: 4af19389-41d3-5b4a-8ce8-16910c8b714f
+		summarizeBy: sum
+		sourceColumn: opioid_claims
+
+	column opioid_day_supply
+		dataType: double
+		formatString: #,0.00
+		lineageTag: a0318a9b-7d0a-5f55-acbe-ea35c1d9da7c
+		summarizeBy: sum
+		sourceColumn: opioid_day_supply
+
+	column oud_treatment_claims
+		dataType: double
+		formatString: #,0
+		lineageTag: de22940b-1830-515b-8849-7c1af3cffe86
+		summarizeBy: sum
+		sourceColumn: oud_treatment_claims
+
+	column opioid_prescribers
+		dataType: int64
+		formatString: #,0
+		lineageTag: 52d2c919-d804-5ff0-a0ab-762fd339187c
+		summarizeBy: sum
+		sourceColumn: opioid_prescribers
+
+	column opioid_share_of_claims
+		dataType: double
+		formatString: 0.0%
+		lineageTag: a777b34b-5e6d-5175-ac8b-66437e35f32f
+		summarizeBy: none
+		sourceColumn: opioid_share_of_claims
+
+	column oud_treatment_per_opioid_claim
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 3cbfc111-9d12-576e-b225-bdf99b9bcb10
+		summarizeBy: none
+		sourceColumn: oud_treatment_per_opioid_claim
+
+	column avg_opioid_days_per_claim
+		dataType: double
+		formatString: #,0.00
+		lineageTag: cd58ff87-58fb-510f-b9c1-9a4f3b5c5eda
+		summarizeBy: none
+		sourceColumn: avg_opioid_days_per_claim
+
+	partition mart_opioid_by_city = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents(ExportsFolder & "\mart_opioid_by_city.parquet"))
+				in
+				    Source

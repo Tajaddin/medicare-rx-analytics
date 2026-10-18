@@ -1,0 +1,53 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "oudCard",
+  "position": {
+    "x": 940,
+    "y": 440,
+    "z": 0,
+    "width": 320,
+    "height": 260,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_opioid_by_city"
+                    }
+                  },
+                  "Property": "OUD treatment per opioid claim"
+                }
+              },
+              "queryRef": "mart_opioid_by_city.OUD treatment per opioid claim",
+              "nativeQueryRef": "OUD treatment per opioid claim"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'OUD treatment claims per opioid claim'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

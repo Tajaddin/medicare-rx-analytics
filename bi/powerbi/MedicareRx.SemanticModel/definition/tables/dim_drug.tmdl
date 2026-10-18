@@ -1,0 +1,77 @@
+/// Products seen in Florida with class and national 2024 unit prices.
+table dim_drug
+	lineageTag: 3e19c973-89ee-5ecf-a557-6592862faef0
+
+	column brand_name
+		dataType: string
+		lineageTag: ea84aeea-9643-5bb9-99e2-85e64fc74468
+		summarizeBy: none
+		sourceColumn: brand_name
+
+	column generic_name
+		dataType: string
+		lineageTag: dd65f2f4-6d4f-552b-8912-62714c968223
+		summarizeBy: none
+		sourceColumn: generic_name
+
+	column drug_class
+		dataType: string
+		isHidden
+		lineageTag: 62a5ae30-c079-5808-b2a5-629c6db76c3f
+		summarizeBy: none
+		sourceColumn: drug_class
+
+	column is_brand
+		dataType: boolean
+		lineageTag: 4b6758a3-a6af-5d1a-9391-3d2aadb1a0b4
+		summarizeBy: none
+		sourceColumn: is_brand
+
+	column fl_claims_all_years
+		dataType: double
+		formatString: #,0
+		lineageTag: 0bb1e901-5a44-5c2d-b442-a6fb5ed25c9f
+		summarizeBy: sum
+		sourceColumn: fl_claims_all_years
+
+	column fl_cost_all_years
+		dataType: double
+		formatString: \$#,0
+		lineageTag: da571ff1-b936-5a9d-8c41-12735898084b
+		summarizeBy: sum
+		sourceColumn: fl_cost_all_years
+
+	column national_manufacturers_2024
+		dataType: int64
+		formatString: #,0
+		lineageTag: d12ec210-5a5c-5d57-8635-5fe6e617c170
+		summarizeBy: sum
+		sourceColumn: national_manufacturers_2024
+
+	column national_spend_per_unit_2024
+		dataType: double
+		formatString: \$#,0.00
+		lineageTag: 1d90d5ab-f0c2-5544-9c19-0e2caaf7d31d
+		summarizeBy: none
+		sourceColumn: national_spend_per_unit_2024
+
+	column national_spend_per_claim_2024
+		dataType: double
+		formatString: \$#,0.00
+		lineageTag: 335cbb4d-9566-5b0f-9688-88b5b48f0e84
+		summarizeBy: none
+		sourceColumn: national_spend_per_claim_2024
+
+	column national_price_outlier_2024
+		dataType: boolean
+		lineageTag: c21c04e9-d015-5dfc-9433-98106b3f78d1
+		summarizeBy: none
+		sourceColumn: national_price_outlier_2024
+
+	partition dim_drug = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents(ExportsFolder & "\dim_drug.parquet"))
+				in
+				    Source

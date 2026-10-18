@@ -1,0 +1,113 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "savingTable",
+  "position": {
+    "x": 20,
+    "y": 190,
+    "z": 0,
+    "width": 1240,
+    "height": 510,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_generic_opportunity"
+                    }
+                  },
+                  "Property": "generic_name"
+                }
+              },
+              "queryRef": "mart_generic_opportunity.generic_name",
+              "nativeQueryRef": "generic_name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DrugClass"
+                    }
+                  },
+                  "Property": "drug_class"
+                }
+              },
+              "queryRef": "DrugClass.drug_class",
+              "nativeQueryRef": "drug_class"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_generic_opportunity"
+                    }
+                  },
+                  "Property": "Brand share of fills"
+                }
+              },
+              "queryRef": "mart_generic_opportunity.Brand share of fills",
+              "nativeQueryRef": "Brand share of fills"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_generic_opportunity"
+                    }
+                  },
+                  "Property": "Saving upper bound"
+                }
+              },
+              "queryRef": "mart_generic_opportunity.Saving upper bound",
+              "nativeQueryRef": "Saving upper bound"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "mart_generic_opportunity"
+                  }
+                },
+                "Property": "Saving upper bound"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": false
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Largest brand-over-generic spend'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

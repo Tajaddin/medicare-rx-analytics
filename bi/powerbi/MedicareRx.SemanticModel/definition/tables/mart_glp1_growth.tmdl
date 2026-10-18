@@ -1,0 +1,74 @@
+/// GLP-1 receptor agonists by product, specialty and year.
+table mart_glp1_growth
+	lineageTag: 35c54e75-ca8e-50d8-8a3a-9c538747717f
+
+	measure 'GLP-1 claims' = SUM(mart_glp1_growth[claims])
+		formatString: #,0
+		displayFolder: GLP-1
+		lineageTag: cf58ec0a-3927-5112-adb6-4bb455dd691f
+
+	measure 'GLP-1 cost' = SUM(mart_glp1_growth[drug_cost])
+		formatString: \$#,0
+		displayFolder: GLP-1
+		lineageTag: b1ef76de-5287-5125-9b7b-93dfb4377e47
+
+	measure 'GLP-1 prescribers' = SUM(mart_glp1_growth[prescribers])
+		formatString: #,0
+		displayFolder: GLP-1
+		lineageTag: 1203d33d-9562-5a1a-9787-772859f12591
+
+	column generic_name
+		dataType: string
+		lineageTag: 996fa6e0-8486-5523-8c11-4636bc711438
+		summarizeBy: none
+		sourceColumn: generic_name
+
+	column prescriber_type
+		dataType: string
+		lineageTag: 897052a4-337f-51b8-bc37-59317c948b05
+		summarizeBy: none
+		sourceColumn: prescriber_type
+
+	column data_year
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: eb9e7bd9-62fd-5a46-ac9f-d6b7dcafd4cd
+		summarizeBy: none
+		sourceColumn: data_year
+
+	column claims
+		dataType: double
+		formatString: #,0
+		lineageTag: 54083edf-9b64-59b2-8a92-1b3e5a8408a2
+		summarizeBy: sum
+		sourceColumn: claims
+
+	column drug_cost
+		dataType: double
+		formatString: \$#,0
+		lineageTag: 8069b2c3-5e21-5b09-8161-8d6299317908
+		summarizeBy: sum
+		sourceColumn: drug_cost
+
+	column prescribers
+		dataType: int64
+		formatString: #,0
+		lineageTag: ff93aba2-8f89-55a9-b43d-6f5e56dd32ae
+		summarizeBy: sum
+		sourceColumn: prescribers
+
+	column cost_per_claim
+		dataType: double
+		formatString: \$#,0.00
+		lineageTag: d442d8f0-8fc8-5232-9636-67835600e2d2
+		summarizeBy: none
+		sourceColumn: cost_per_claim
+
+	partition mart_glp1_growth = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents(ExportsFolder & "\mart_glp1_growth.parquet"))
+				in
+				    Source

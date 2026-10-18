@@ -1,0 +1,19 @@
+/// Data years in the marts.
+table Year
+	lineageTag: 22812c04-8a37-5a9f-8d34-30e70178db96
+
+	column data_year
+		dataType: int64
+		formatString: 0
+		lineageTag: d40a927b-6ad6-5695-a607-fb4510d9ed91
+		summarizeBy: none
+		sourceColumn: data_year
+
+	partition Year = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents(ExportsFolder & "\mart_drug_spend_trend.parquet")),
+				    Result = Table.Sort(Table.Distinct(Table.SelectColumns(Source, {"data_year"})), {"data_year"})
+				in
+				    Result

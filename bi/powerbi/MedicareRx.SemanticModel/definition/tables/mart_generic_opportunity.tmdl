@@ -1,0 +1,98 @@
+/// Brand spend where the same generic name was also dispensed, with an upper-bound saving.
+table mart_generic_opportunity
+	lineageTag: 8b665589-ffdc-5553-a2b4-db22a79b1376
+
+	measure 'Saving upper bound' = SUM(mart_generic_opportunity[savings_upper_bound])
+		formatString: \$#,0
+		displayFolder: Generics
+		lineageTag: 81f55fa0-9078-579f-bb6d-8f97f5735452
+
+	measure 'Brand share of fills' = DIVIDE(SUM(mart_generic_opportunity[brand_fills]), SUM(mart_generic_opportunity[brand_fills]) + SUM(mart_generic_opportunity[generic_fills]))
+		formatString: 0.0%
+		displayFolder: Generics
+		lineageTag: 7e527135-da4f-52ec-84d4-7fce839dde50
+
+	column generic_name
+		dataType: string
+		lineageTag: 4fbaff29-0d78-5f60-8786-e18b5d9bc7a2
+		summarizeBy: none
+		sourceColumn: generic_name
+
+	column drug_class
+		dataType: string
+		isHidden
+		lineageTag: 1154c4cf-bd74-5ed0-99e2-cc835123a7b6
+		summarizeBy: none
+		sourceColumn: drug_class
+
+	column data_year
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: 1d609b81-82d5-5a5f-8a53-b2047e50d247
+		summarizeBy: none
+		sourceColumn: data_year
+
+	column brand_fills
+		dataType: double
+		formatString: #,0
+		lineageTag: 77bf4b10-efad-5391-9d38-066e459080db
+		summarizeBy: sum
+		sourceColumn: brand_fills
+
+	column brand_cost
+		dataType: double
+		formatString: \$#,0
+		lineageTag: 84e95ccb-8c2f-5763-9180-f7412708e573
+		summarizeBy: sum
+		sourceColumn: brand_cost
+
+	column generic_fills
+		dataType: double
+		formatString: #,0
+		lineageTag: 0678ce3c-2074-58d3-a347-67971f9e6566
+		summarizeBy: sum
+		sourceColumn: generic_fills
+
+	column generic_cost
+		dataType: double
+		formatString: \$#,0
+		lineageTag: 265d1d90-f73d-5bdc-ad68-34a7087f1077
+		summarizeBy: sum
+		sourceColumn: generic_cost
+
+	column brand_cost_per_fill
+		dataType: double
+		formatString: \$#,0.00
+		lineageTag: 190f2db2-95c7-57b2-96c9-837ca75b3663
+		summarizeBy: none
+		sourceColumn: brand_cost_per_fill
+
+	column generic_cost_per_fill
+		dataType: double
+		formatString: \$#,0.00
+		lineageTag: 34a32871-9fb9-59ff-97bb-82a8f70f6697
+		summarizeBy: none
+		sourceColumn: generic_cost_per_fill
+
+	column savings_upper_bound
+		dataType: double
+		formatString: \$#,0.00
+		lineageTag: 2b40752e-2e4a-5238-b7d4-2e8723caa033
+		summarizeBy: none
+		sourceColumn: savings_upper_bound
+
+	column brand_share_of_fills
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 18e99e5f-b315-539c-aae4-9c542592b46c
+		summarizeBy: none
+		sourceColumn: brand_share_of_fills
+
+	partition mart_generic_opportunity = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents(ExportsFolder & "\mart_generic_opportunity.parquet"))
+				in
+				    Source

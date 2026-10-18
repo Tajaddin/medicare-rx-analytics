@@ -1,0 +1,89 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "costByClass",
+  "position": {
+    "x": 640,
+    "y": 190,
+    "z": 0,
+    "width": 620,
+    "height": 510,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DrugClass"
+                    }
+                  },
+                  "Property": "drug_class"
+                }
+              },
+              "queryRef": "DrugClass.drug_class",
+              "nativeQueryRef": "drug_class"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_drug_spend_trend"
+                    }
+                  },
+                  "Property": "Total drug cost"
+                }
+              },
+              "queryRef": "mart_drug_spend_trend.Total drug cost",
+              "nativeQueryRef": "Total drug cost"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "mart_drug_spend_trend"
+                  }
+                },
+                "Property": "Total drug cost"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": false
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Drug cost by therapeutic class'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

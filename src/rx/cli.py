@@ -1,10 +1,12 @@
-"""`rx <command>`: emulator, plan, bootstrap, load."""
+"""`rx <command>`: emulator, plan, bootstrap, load, export."""
 
 from __future__ import annotations
 
 import json
 import logging
 import sys
+import time
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import Annotated
@@ -90,6 +92,35 @@ def load(
     with connect(sf) as conn:
         result = load_year(conn, sf.database, dataset.value, year, pages)
     typer.echo(json.dumps(result.__dict__))
+
+
+@app.command()
+def export(hyper: bool = True) -> None:
+    """Marts -> Parquet/CSV (Power BI) and a verified .hyper extract (Tableau); report in reports/exports.json."""
+    from rx.exports import MARTS, fetch_mart, verify_hyper, write_files, write_hyper
+    from rx.warehouse import connect
+
+    settings, sf = get_settings(), get_snowflake()
+    start = time.perf_counter()
+    with connect(sf) as conn:
+        frames = {mart: fetch_mart(conn, sf.database, mart) for mart in MARTS}
+    results = write_files(frames, settings.exports_dir)
+    report: dict[str, object] = {
+        "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
+        "target": "emulator" if sf.is_emulator else "snowflake",
+        "marts": {r.mart: r.rows for r in results},
+    }
+    if hyper:
+        path = settings.exports_dir / "rx_marts.hyper"
+        write_hyper(frames, path)
+        report["hyper"] = verify_hyper(path, results)
+        if not report["hyper"]["ok"]:  # type: ignore[index]
+            typer.echo(json.dumps(report, indent=2), err=True)
+            raise typer.Exit(1)
+    report["seconds"] = round(time.perf_counter() - start, 1)
+    settings.reports_dir.mkdir(parents=True, exist_ok=True)
+    (settings.reports_dir / "exports.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    typer.echo(json.dumps(report["marts"]))
 
 
 if __name__ == "__main__":

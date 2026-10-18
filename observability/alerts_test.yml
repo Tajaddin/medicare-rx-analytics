@@ -1,0 +1,96 @@
+# promtool test rules alerts_test.yml  (make alerts-test)
+rule_files:
+  - alert_rules.yml
+
+evaluation_interval: 1m
+
+tests:
+  - name: a failed run pages, a successful one does not
+    interval: 1m
+    input_series:
+      - series: rx_pipeline_last_run_success{job="rx_pipeline"}
+        values: "1 1 0 0"
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: RxPipelineFailed
+        exp_alerts: []
+      - eval_time: 3m
+        alertname: RxPipelineFailed
+        exp_alerts:
+          - exp_labels: { severity: page, job: rx_pipeline }
+            exp_annotations:
+              summary: The last pipeline run failed
+              description: A stage failed; reports/pipeline-run.json names it.
+              runbook: docs/RUNBOOK.md#rxpipelinefailed
+
+  - name: stale after 8 days without a success
+    interval: 1h
+    input_series:
+      # last success at t=0; the series keeps being scraped with the same value
+      - series: rx_pipeline_last_success_timestamp_seconds{job="rx_pipeline"}
+        values: "0+0x250"
+    alert_rule_test:
+      - eval_time: 191h
+        alertname: RxPipelineStale
+        exp_alerts: []
+      - eval_time: 193h
+        alertname: RxPipelineStale
+        exp_alerts:
+          - exp_labels: { severity: ticket, job: rx_pipeline }
+            exp_annotations:
+              summary: No successful pipeline run for more than 8 days
+              runbook: docs/RUNBOOK.md#rxpipelinestale
+
+  - name: failing dbt tests page
+    interval: 1m
+    input_series:
+      - series: rx_dbt_failures{job="rx_pipeline"}
+        values: "0 0 2"
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: RxDataTestsFailing
+        exp_alerts: []
+      - eval_time: 2m
+        alertname: RxDataTestsFailing
+        exp_alerts:
+          - exp_labels: { severity: page, job: rx_pipeline }
+            exp_annotations:
+              summary: "2 dbt models or tests failed in the last run"
+              description: Marts may be wrong; BI refreshes should wait.
+              runbook: docs/RUNBOOK.md#rxdatatestsfailing
+
+  - name: extract mismatch
+    interval: 1m
+    input_series:
+      - series: rx_hyper_verified{job="rx_pipeline"}
+        values: "1 0"
+    alert_rule_test:
+      - eval_time: 0m
+        alertname: RxTableauExtractMismatch
+        exp_alerts: []
+      - eval_time: 1m
+        alertname: RxTableauExtractMismatch
+        exp_alerts:
+          - exp_labels: { severity: ticket, job: rx_pipeline }
+            exp_annotations:
+              summary: The Tableau extract did not read back equal to the marts
+              runbook: docs/RUNBOOK.md#rxtableauextractmismatch
+
+  - name: a year losing more than 1% of its rows since last week
+    interval: 1d
+    input_series:
+      - series: rx_raw_rows{job="rx_pipeline", dataset="prescriber_drug", year="2024"}
+        values: "2048452x7 2000000"
+      - series: rx_raw_rows{job="rx_pipeline", dataset="prescriber_drug", year="2023"}
+        values: "1955768x7 1950000"
+    alert_rule_test:
+      - eval_time: 7d
+        alertname: RxRawRowsDropped
+        exp_alerts: []
+      - eval_time: 8d
+        alertname: RxRawRowsDropped
+        exp_alerts:
+          - exp_labels: { severity: ticket, job: rx_pipeline, dataset: prescriber_drug, year: "2024" }
+            exp_annotations:
+              summary: "prescriber_drug 2024 lost more than 1% of its rows since last week"
+              runbook: docs/RUNBOOK.md#rxrawrowsdropped

@@ -1,0 +1,42 @@
+# Alerts for the batch pipeline, from the metrics `rx metrics` pushes after every run (docs/RUNBOOK.md).
+groups:
+  - name: rx-pipeline
+    rules:
+      - alert: RxPipelineFailed
+        expr: rx_pipeline_last_run_success == 0
+        labels: { severity: page }
+        annotations:
+          summary: The last pipeline run failed
+          description: A stage failed; reports/pipeline-run.json names it.
+          runbook: docs/RUNBOOK.md#rxpipelinefailed
+
+      - alert: RxPipelineStale
+        # CMS publishes yearly, but the pipeline runs weekly to pick up revisions; 8 days allows one late run.
+        expr: time() - rx_pipeline_last_success_timestamp_seconds > 8 * 86400
+        labels: { severity: ticket }
+        annotations:
+          summary: No successful pipeline run for more than 8 days
+          runbook: docs/RUNBOOK.md#rxpipelinestale
+
+      - alert: RxDataTestsFailing
+        expr: rx_dbt_failures > 0
+        labels: { severity: page }
+        annotations:
+          summary: "{{ $value }} dbt models or tests failed in the last run"
+          description: Marts may be wrong; BI refreshes should wait.
+          runbook: docs/RUNBOOK.md#rxdatatestsfailing
+
+      - alert: RxTableauExtractMismatch
+        expr: rx_hyper_verified == 0
+        labels: { severity: ticket }
+        annotations:
+          summary: The Tableau extract did not read back equal to the marts
+          runbook: docs/RUNBOOK.md#rxtableauextractmismatch
+
+      - alert: RxRawRowsDropped
+        # A data year shrinking by more than 1% between two runs is a CMS revision or a broken extract.
+        expr: rx_raw_rows < 0.99 * (rx_raw_rows offset 7d)
+        labels: { severity: ticket }
+        annotations:
+          summary: "{{ $labels.dataset }} {{ $labels.year }} lost more than 1% of its rows since last week"
+          runbook: docs/RUNBOOK.md#rxrawrowsdropped

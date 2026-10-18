@@ -1,0 +1,11 @@
+Drug,Drug class,Drug cost (USD),Claims
+Apixaban,doac_anticoagulant,1526166285.9,1667257.0
+Semaglutide,glp1_receptor_agonist,965660172.64,750695.0
+Empagliflozin,sglt2_inhibitor,670465869.5799999,608874.0
+Lenalidomide,other,519892355.35,32652.0
+Tirzepatide,glp1_receptor_agonist,457562721.91,365714.0
+Rivaroxaban,doac_anticoagulant,418713137.68,439963.0
+Fluticasone/Umeclidin/Vilanter,other,391315980.17000014,433890.0
+Bictegrav/Emtricit/Tenofov Ala,other,384627220.49,96094.0
+Dapagliflozin Propanediol,sglt2_inhibitor,383027374.12,398018.0
+Sacubitril/Valsartan,other,307763902.42,284305.0

@@ -1,0 +1,55 @@
+{
+  "generated_at": "2026-10-18T22:10:27+00:00",
+  "target": "snowflake",
+  "marts": {
+    "MART_DRUG_SPEND_TREND": 4438,
+    "MART_SPECIALTY_CLASS_YEAR": 1798,
+    "MART_GENERIC_OPPORTUNITY": 773,
+    "MART_OPIOID_BY_CITY": 781,
+    "MART_GLP1_GROWTH": 493,
+    "DIM_DRUG": 2724
+  },
+  "hyper": {
+    "path": "rx_marts.hyper",
+    "tables": {
+      "MART_DRUG_SPEND_TREND": {
+        "rows": 4438,
+        "expected_rows": 4438,
+        "mismatches": [],
+        "ok": true
+      },
+      "MART_SPECIALTY_CLASS_YEAR": {
+        "rows": 1798,
+        "expected_rows": 1798,
+        "mismatches": [],
+        "ok": true
+      },
+      "MART_GENERIC_OPPORTUNITY": {
+        "rows": 773,
+        "expected_rows": 773,
+        "mismatches": [],
+        "ok": true
+      },
+      "MART_OPIOID_BY_CITY": {
+        "rows": 781,
+        "expected_rows": 781,
+        "mismatches": [],
+        "ok": true
+      },
+      "MART_GLP1_GROWTH": {
+        "rows": 493,
+        "expected_rows": 493,
+        "mismatches": [],
+        "ok": true
+      },
+      "DIM_DRUG": {
+        "rows": 2724,
+        "expected_rows": 2724,
+        "mismatches": [],
+        "ok": true
+      }
+    },
+    "ok": true
+  },
+  "seconds": 21.3
+}

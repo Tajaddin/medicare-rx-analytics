@@ -1,0 +1,43 @@
+{
+  "marts": [
+    {
+      "mart": "dim_drug",
+      "rows_emulator": 2724,
+      "rows_snowflake": 2724,
+      "numeric_columns": 5
+    },
+    {
+      "mart": "mart_drug_spend_trend",
+      "rows_emulator": 4438,
+      "rows_snowflake": 4438,
+      "numeric_columns": 9
+    },
+    {
+      "mart": "mart_generic_opportunity",
+      "rows_emulator": 773,
+      "rows_snowflake": 773,
+      "numeric_columns": 9
+    },
+    {
+      "mart": "mart_glp1_growth",
+      "rows_emulator": 493,
+      "rows_snowflake": 493,
+      "numeric_columns": 5
+    },
+    {
+      "mart": "mart_opioid_by_city",
+      "rows_emulator": 781,
+      "rows_snowflake": 781,
+      "numeric_columns": 10
+    },
+    {
+      "mart": "mart_specialty_class_year",
+      "rows_emulator": 1798,
+      "rows_snowflake": 1798,
+      "numeric_columns": 6
+    }
+  ],
+  "numeric_columns_compared": 44,
+  "max_relative_difference": 2.0343150652335357e-07,
+  "where": "mart_opioid_by_city.oud_treatment_per_opioid_claim"
+}

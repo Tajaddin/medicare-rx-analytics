@@ -1,5 +1,6 @@
 -- Opioid analgesic and opioid-use-disorder treatment prescribing by city and year (cities with at least 20
--- prescribers, so no row describes a handful of clinicians).
+-- prescribers, so no row describes a handful of clinicians). OUD treatment means buprenorphine products for OUD;
+-- naltrexone is left out because its prescriptions do not say whether they treat alcohol or opioid use.
 with city as (
     select
         city,

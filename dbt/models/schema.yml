@@ -44,9 +44,11 @@ models:
           - accepted_values: { values: [2020, 2021, 2022, 2023, 2024], quote: false }
 
   - name: int_drug_class
+    description: One class per product (brand x generic name); see seeds/drug_classes.csv for the rules.
+    data_tests:
+      - unique_combination:
+          columns: [brand_name, generic_name]
     columns:
-      - name: generic_name
-        data_tests: [unique, not_null]
       - name: drug_class
         data_tests:
           - relationships: { to: ref('drug_classes'), field: drug_class }
@@ -66,10 +68,10 @@ models:
           columns: [brand_name, generic_name]
 
   - name: mart_drug_spend_trend
-    description: Spend per generic name and year in Florida, YoY growth, national cost per claim.
+    description: Spend per generic name, class and year in Florida, YoY growth, national cost per claim.
     data_tests:
       - unique_combination:
-          columns: [generic_name, data_year]
+          columns: [generic_name, drug_class, data_year]
       - totals_match:
           compare_model: ref('stg_prescriber_drug')
           column: drug_cost
@@ -92,7 +94,7 @@ models:
     description: Upper-bound saving if brand fills had cost what the same generic name's fills did.
     data_tests:
       - unique_combination:
-          columns: [generic_name, data_year]
+          columns: [generic_name, drug_class, data_year]
     columns:
       - name: savings_upper_bound
         data_tests:

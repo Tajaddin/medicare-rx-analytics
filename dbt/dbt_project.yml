@@ -34,5 +34,7 @@ seeds:
     drug_classes:
       +column_types:
         drug_class: varchar
-        generic_name_pattern: varchar
+        generic_pattern: varchar
+        brand_pattern: varchar
+        priority: number(3)
         note: varchar

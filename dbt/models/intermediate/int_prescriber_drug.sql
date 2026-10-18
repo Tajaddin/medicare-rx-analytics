@@ -7,4 +7,4 @@ select
     p.total_drug_cost / nullif(p.total_claims, 0) as cost_per_claim,
     p.total_drug_cost / nullif(p.total_30day_fills, 0) as cost_per_30day_fill
 from {{ ref('stg_prescriber_drug') }} as p
-left join {{ ref('int_drug_class') }} as c using (generic_name)
+left join {{ ref('int_drug_class') }} as c using (brand_name, generic_name)

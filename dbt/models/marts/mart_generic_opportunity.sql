@@ -1,17 +1,18 @@
 -- Brand-name spend where a generic with the same generic name was also dispensed in Florida that year, and an
 -- upper-bound estimate of the saving if every brand 30-day fill had cost what the generic's did.
 -- Upper bound: the generic name groups strengths and forms, and some brands have no interchangeable generic.
+-- Compared within a class, so Belbuca (a pain film) is never priced against buprenorphine tablets for OUD.
 with by_type as (
     select
         generic_name,
-        any_value(drug_class) as drug_class,
+        drug_class,
         data_year,
         sum(iff(is_brand, total_30day_fills, 0)) as brand_fills,
         sum(iff(is_brand, total_drug_cost, 0)) as brand_cost,
         sum(iff(not is_brand, total_30day_fills, 0)) as generic_fills,
         sum(iff(not is_brand, total_drug_cost, 0)) as generic_cost
     from {{ ref('int_prescriber_drug') }}
-    group by generic_name, data_year
+    group by generic_name, drug_class, data_year
 )
 
 select

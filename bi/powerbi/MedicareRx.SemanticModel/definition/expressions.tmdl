@@ -1,0 +1,5 @@
+/// Absolute path of the bi/exports folder written by `rx export`.
+expression ExportsFolder = "C:\medicare-rx-analytics\bi\exports" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 0099746e-8b9c-5d1b-9dd5-def70e95dd45
+
+	annotation PBI_ResultType = Text

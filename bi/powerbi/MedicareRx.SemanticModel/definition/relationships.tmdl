@@ -1,0 +1,35 @@
+relationship 5469a0fd-a264-5b21-817f-aa00c3f58c50
+	fromColumn: mart_drug_spend_trend.data_year
+	toColumn: Year.data_year
+
+relationship 4cc25d32-ed40-506a-82c1-bf9c7e220d0c
+	fromColumn: mart_specialty_class_year.data_year
+	toColumn: Year.data_year
+
+relationship 274c1930-8b65-5529-9027-be957eda5904
+	fromColumn: mart_generic_opportunity.data_year
+	toColumn: Year.data_year
+
+relationship e4b12150-ec83-5a40-88cf-9cd2d1b4f279
+	fromColumn: mart_opioid_by_city.data_year
+	toColumn: Year.data_year
+
+relationship 47dfb37d-9748-542f-a793-e825b61ca96c
+	fromColumn: mart_glp1_growth.data_year
+	toColumn: Year.data_year
+
+relationship 1f0db0b9-2dc4-5099-bec8-c98e0b7e7749
+	fromColumn: mart_drug_spend_trend.drug_class
+	toColumn: DrugClass.drug_class
+
+relationship e7e35166-986c-5d27-8869-31ba65249ad3
+	fromColumn: mart_specialty_class_year.drug_class
+	toColumn: DrugClass.drug_class
+
+relationship e96f305f-eac6-5e3e-bfb4-c81fca429d56
+	fromColumn: mart_generic_opportunity.drug_class
+	toColumn: DrugClass.drug_class
+
+relationship dde8ee61-15ed-5194-8ee1-dabedd94ba2d
+	fromColumn: dim_drug.drug_class
+	toColumn: DrugClass.drug_class

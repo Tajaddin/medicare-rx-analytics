@@ -1,0 +1,118 @@
+/// Florida Part D spend per generic name, class and year, with the national cost per claim.
+table mart_drug_spend_trend
+	lineageTag: f4aaeaa1-c19e-5852-8c6d-41824dd0696c
+
+	measure 'Total drug cost' = SUM(mart_drug_spend_trend[drug_cost])
+		formatString: \$#,0
+		displayFolder: Spend
+		lineageTag: a74ff1e2-b706-5138-8a13-d1c0f8054621
+
+	measure 'Total claims' = SUM(mart_drug_spend_trend[claims])
+		formatString: #,0
+		displayFolder: Spend
+		lineageTag: 0b3de3b4-68e0-571f-9eca-264a3cc28cf5
+
+	measure 'Cost per claim' = DIVIDE([Total drug cost], [Total claims])
+		formatString: \$#,0.00
+		displayFolder: Spend
+		lineageTag: 4c10a1ac-0428-5ff8-9c12-cdc6035fc8e0
+
+	measure 'Drug cost latest year' = VAR y = MAX('Year'[data_year]) RETURN CALCULATE([Total drug cost], 'Year'[data_year] = y)
+		formatString: \$#,0
+		displayFolder: Spend
+		lineageTag: a2500bc8-4023-536d-838f-a88ae2186a06
+
+	measure 'Drug cost previous year' = VAR y = MAX('Year'[data_year]) RETURN CALCULATE([Total drug cost], 'Year'[data_year] = y - 1)
+		formatString: \$#,0
+		displayFolder: Spend
+		lineageTag: a49fa333-3668-5d05-acfa-a75d1888b7e0
+
+	measure 'Drug cost growth' = VAR prev = [Drug cost previous year] RETURN IF(NOT ISBLANK(prev), DIVIDE([Drug cost latest year] - prev, prev))
+		formatString: 0.0%
+		displayFolder: Spend
+		lineageTag: 7e2bf6e7-b935-5186-8e42-219ac74d1cd6
+
+	column generic_name
+		dataType: string
+		lineageTag: 9ae2f08f-5cec-578b-8a1b-13ea3ccff37a
+		summarizeBy: none
+		sourceColumn: generic_name
+
+	column drug_class
+		dataType: string
+		isHidden
+		lineageTag: 86a5c08f-2a75-5256-8e01-0914e71a6ef1
+		summarizeBy: none
+		sourceColumn: drug_class
+
+	column data_year
+		dataType: int64
+		formatString: 0
+		isHidden
+		lineageTag: 3f4913ea-cac7-50d0-b8bd-7dae2c366331
+		summarizeBy: none
+		sourceColumn: data_year
+
+	column claims
+		dataType: double
+		formatString: #,0
+		lineageTag: 8592edc6-084e-5e5c-b918-893b7b0c960f
+		summarizeBy: sum
+		sourceColumn: claims
+
+	column fills_30day
+		dataType: double
+		formatString: #,0
+		lineageTag: dfdda8d0-ac46-5066-a4be-2d853674612d
+		summarizeBy: sum
+		sourceColumn: fills_30day
+
+	column drug_cost
+		dataType: double
+		formatString: \$#,0
+		lineageTag: 47094f15-da3a-51ea-803f-d169e8556eda
+		summarizeBy: sum
+		sourceColumn: drug_cost
+
+	column prescribers
+		dataType: int64
+		formatString: #,0
+		lineageTag: 0a02055d-a4a5-5c2b-a48d-b6ca96260087
+		summarizeBy: sum
+		sourceColumn: prescribers
+
+	column cost_per_claim
+		dataType: double
+		formatString: \$#,0.00
+		lineageTag: f02b7ec0-d9dd-5668-b7f9-0a0c87fc2456
+		summarizeBy: none
+		sourceColumn: cost_per_claim
+
+	column national_cost_per_claim
+		dataType: double
+		formatString: \$#,0.00
+		lineageTag: 1a0bea33-91dc-5578-bfde-55c61068337b
+		summarizeBy: none
+		sourceColumn: national_cost_per_claim
+
+	column cost_growth_yoy
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 2e24cb70-21f4-5a71-9130-5b1e3be0aee2
+		summarizeBy: none
+		sourceColumn: cost_growth_yoy
+
+	column cost_rank_in_year
+		dataType: int64
+		formatString: \$#,0
+		lineageTag: 51b83fd9-eaec-5bb0-8194-99c3b7e4dc97
+		summarizeBy: none
+		sourceColumn: cost_rank_in_year
+
+	partition mart_drug_spend_trend = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents(ExportsFolder & "\mart_drug_spend_trend.parquet"))
+				in
+				    Source

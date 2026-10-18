@@ -1,0 +1,18 @@
+/// Therapeutic classes from the reviewed rules.
+table DrugClass
+	lineageTag: 3b269cd2-e681-5ad3-86e5-52398c78a28f
+
+	column drug_class
+		dataType: string
+		lineageTag: 1da3602c-2abb-5235-be49-58a3bfabc680
+		summarizeBy: none
+		sourceColumn: drug_class
+
+	partition DrugClass = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents(ExportsFolder & "\dim_drug.parquet")),
+				    Result = Table.Sort(Table.Distinct(Table.SelectColumns(Source, {"drug_class"})), {"drug_class"})
+				in
+				    Result

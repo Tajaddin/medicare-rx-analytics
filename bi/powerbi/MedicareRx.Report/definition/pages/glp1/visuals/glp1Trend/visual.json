@@ -1,0 +1,89 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "glp1Trend",
+  "position": {
+    "x": 20,
+    "y": 20,
+    "z": 0,
+    "width": 620,
+    "height": 400,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "lineChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Year"
+                    }
+                  },
+                  "Property": "data_year"
+                }
+              },
+              "queryRef": "Year.data_year",
+              "nativeQueryRef": "data_year"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_glp1_growth"
+                    }
+                  },
+                  "Property": "GLP-1 claims"
+                }
+              },
+              "queryRef": "mart_glp1_growth.GLP-1 claims",
+              "nativeQueryRef": "GLP-1 claims"
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_glp1_growth"
+                    }
+                  },
+                  "Property": "generic_name"
+                }
+              },
+              "queryRef": "mart_glp1_growth.generic_name",
+              "nativeQueryRef": "generic_name"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'GLP-1 claims by product'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

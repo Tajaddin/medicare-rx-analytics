@@ -1,0 +1,99 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "opioidCities",
+  "position": {
+    "x": 20,
+    "y": 440,
+    "z": 0,
+    "width": 900,
+    "height": 260,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_opioid_by_city"
+                    }
+                  },
+                  "Property": "city"
+                }
+              },
+              "queryRef": "mart_opioid_by_city.city",
+              "nativeQueryRef": "city"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_opioid_by_city"
+                    }
+                  },
+                  "Property": "Opioid share of claims"
+                }
+              },
+              "queryRef": "mart_opioid_by_city.Opioid share of claims",
+              "nativeQueryRef": "Opioid share of claims"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "mart_opioid_by_city"
+                    }
+                  },
+                  "Property": "OUD treatment per opioid claim"
+                }
+              },
+              "queryRef": "mart_opioid_by_city.OUD treatment per opioid claim",
+              "nativeQueryRef": "OUD treatment per opioid claim"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "mart_opioid_by_city"
+                  }
+                },
+                "Property": "Opioid share of claims"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": false
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Opioid share of claims by city'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

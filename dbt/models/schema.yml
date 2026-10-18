@@ -1,0 +1,122 @@
+version: 2
+
+models:
+  - name: stg_prescriber_drug
+    description: Typed Part D prescriber x drug x year rows for Florida. Prescriber names are deliberately dropped.
+    data_tests:
+      - unique_combination:
+          columns: [npi, brand_name, generic_name, data_year]
+    columns:
+      - name: npi
+        description: National Provider Identifier (10 digits).
+        data_tests:
+          - not_null
+          - matches_pattern: { pattern: "^[0-9]{10}$" }
+      - name: state
+        data_tests:
+          - accepted_values: { values: ["FL"] }
+      - name: generic_name
+        data_tests: [not_null]
+      - name: total_claims
+        description: CMS publishes rows with 11 or more claims only.
+        data_tests:
+          - not_null
+          - at_least: { minimum: 11 }
+      - name: total_drug_cost
+        data_tests:
+          - not_null
+          - at_least: { minimum: 0 }
+      - name: total_beneficiaries
+        description: NULL when CMS suppressed a count below 11 beneficiaries; never back-filled.
+        data_tests:
+          - at_least: { minimum: 11 }
+
+  - name: stg_spending_by_drug
+    description: National spending per drug (Overall rows), one row per year 2020-2024.
+    data_tests:
+      - unique_combination:
+          columns: [brand_name, generic_name, data_year]
+    columns:
+      - name: total_spending
+        data_tests: [not_null]
+      - name: data_year
+        data_tests:
+          - accepted_values: { values: [2020, 2021, 2022, 2023, 2024], quote: false }
+
+  - name: int_drug_class
+    description: One class per product (brand x generic name); see seeds/drug_classes.csv for the rules.
+    data_tests:
+      - unique_combination:
+          columns: [brand_name, generic_name]
+    columns:
+      - name: drug_class
+        data_tests:
+          - relationships: { to: ref('drug_classes'), field: drug_class }
+
+  - name: fct_prescriber_drug_year
+    description: "Grain: prescriber (NPI) x brand x generic x year."
+    data_tests:
+      - unique_combination:
+          columns: [npi, brand_name, generic_name, data_year]
+      - row_count_matches:
+          compare_model: ref('stg_prescriber_drug')
+
+  - name: dim_drug
+    description: Products seen in Florida with class and the national 2024 unit price.
+    data_tests:
+      - unique_combination:
+          columns: [brand_name, generic_name]
+
+  - name: mart_drug_spend_trend
+    description: Spend per generic name, class and year in Florida, YoY growth, national cost per claim.
+    data_tests:
+      - unique_combination:
+          columns: [generic_name, drug_class, data_year]
+      - totals_match:
+          compare_model: ref('stg_prescriber_drug')
+          column: drug_cost
+          compare_column: total_drug_cost
+    columns:
+      - name: cost_per_claim
+        data_tests:
+          - at_least: { minimum: 0 }
+
+  - name: mart_specialty_class_year
+    data_tests:
+      - unique_combination:
+          columns: [prescriber_type, drug_class, data_year]
+    columns:
+      - name: share_of_specialty_claims
+        data_tests:
+          - between: { minimum: 0, maximum: 1 }
+
+  - name: mart_generic_opportunity
+    description: Upper-bound saving if brand fills had cost what the same generic name's fills did.
+    data_tests:
+      - unique_combination:
+          columns: [generic_name, drug_class, data_year]
+    columns:
+      - name: savings_upper_bound
+        data_tests:
+          - at_least: { minimum: 0 }
+      - name: brand_share_of_fills
+        data_tests:
+          - between: { minimum: 0, maximum: 1 }
+
+  - name: mart_opioid_by_city
+    description: Cities with at least 20 prescribers only.
+    data_tests:
+      - unique_combination:
+          columns: [city, data_year]
+    columns:
+      - name: prescribers
+        data_tests:
+          - at_least: { minimum: 20 }
+      - name: opioid_share_of_claims
+        data_tests:
+          - between: { minimum: 0, maximum: 1 }
+
+  - name: mart_glp1_growth
+    data_tests:
+      - unique_combination:
+          columns: [generic_name, prescriber_type, data_year]

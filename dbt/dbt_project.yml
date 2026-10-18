@@ -1,0 +1,40 @@
+name: rx
+version: "1.0.0"
+config-version: 2
+profile: rx
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+flags:
+  send_anonymous_usage_stats: false
+
+vars:
+  # Below this many beneficiaries CMS blanks the count (small-cell suppression); never back-fill it.
+  cms_suppression_threshold: 11
+  spending_years: [2020, 2021, 2022, 2023, 2024]
+
+models:
+  rx:
+    +schema: ANALYTICS
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: view
+    marts:
+      +materialized: table
+
+seeds:
+  rx:
+    +schema: ANALYTICS
+    drug_classes:
+      +column_types:
+        drug_class: varchar
+        generic_pattern: varchar
+        brand_pattern: varchar
+        priority: number(3)
+        note: varchar

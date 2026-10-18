@@ -1,0 +1,55 @@
+drug_class,generic_pattern,brand_pattern,priority,note
+other,%apomorphine%,%,10,Parkinson's disease; not an opioid although the name contains 'morphine'
+other,%methylnaltrexone%,%,10,opioid-induced constipation (Relistor); not addiction treatment
+other,%naltrexone%bupropion%,%,10,weight management (Contrave)
+other,%naltrexone%,%,10,"alcohol or opioid use disorder; a prescription does not say which, so it is not counted as OUD treatment"
+diabetes_supply,%syringe%,%,10,insulin syringes carry 'insulin' in the generic name but are supplies
+diabetes_supply,%pen needle%,%,10,
+diabetes_supply,%pump%,%,10,insulin pump cartridges and bolus pumps
+diabetes_supply,%insulin device%,%,10,wearable insulin delivery devices
+diabetes_supply,%pmp cart%,%,10,pump cartridges under an abbreviated name
+diabetes_supply,"%pen,reusable%",%,10,reusable smart insulin pens
+diabetes_supply,%supplies%,%,10,insulin administration supply kits
+diabetes_supply,"%syr,ndl%",%,10,syringe kits under an abbreviated name
+opioid_antitussive,%promethazine%codeine%,%,10,cough syrup; CDC opioid prescribing measures leave out cough and cold products
+opioid_antitussive,%homatrop%,%,10,hydrocodone/homatropine cough product
+opioid_antitussive,%codeine%guaifenesin%,%,10,codeine/guaifenesin cough product
+opioid_antitussive,%hydrocodone%chlorphen%,%,10,hydrocodone/chlorpheniramine cough product
+opioid_use_disorder,buprenorphine,sublocade,10,monthly extended-release injection for OUD
+opioid_use_disorder,buprenorphine,brixadi,10,weekly or monthly extended-release injection for OUD
+opioid_analgesic,buprenorphine hcl,belbuca,10,buccal film for chronic pain
+opioid_analgesic,buprenorphine,%,15,transdermal patch for pain (Butrans and its generics; about $62 a unit nationally in 2024)
+opioid_use_disorder,%buprenorphine%,%,20,sublingual tablets and buprenorphine/naloxone (Suboxone and Zubsolv)
+opioid_analgesic,%oxycodone%,%,30,includes combinations such as oxycodone/acetaminophen
+opioid_analgesic,%hydrocodone%,%,30,includes combinations such as hydrocodone/acetaminophen
+opioid_analgesic,%morphine%,%,30,
+opioid_analgesic,%fentanyl%,%,30,
+opioid_analgesic,%hydromorphone%,%,30,
+opioid_analgesic,%oxymorphone%,%,30,
+opioid_analgesic,%tapentadol%,%,30,
+opioid_analgesic,%tramadol%,%,30,
+opioid_analgesic,%codeine%,%,30,includes combinations such as acetaminophen/codeine and butalbital/codeine
+opioid_analgesic,%methadone%,%,30,Part D methadone is dispensed for pain; treatment programmes bill elsewhere
+opioid_analgesic,%meperidine%,%,30,
+opioid_analgesic,%levorphanol%,%,30,
+glp1_receptor_agonist,%semaglutide%,%,20,
+glp1_receptor_agonist,%liraglutide%,%,20,includes the insulin degludec/liraglutide combination
+glp1_receptor_agonist,%dulaglutide%,%,20,
+glp1_receptor_agonist,%exenatide%,%,20,
+glp1_receptor_agonist,%lixisenatide%,%,20,includes the insulin glargine/lixisenatide combination
+glp1_receptor_agonist,%tirzepatide%,%,20,dual GIP and GLP-1 receptor agonist
+sglt2_inhibitor,%empagliflozin%,%,30,includes combinations such as empagliflozin/metformin
+sglt2_inhibitor,%dapagliflozin%,%,30,
+sglt2_inhibitor,%canagliflozin%,%,30,
+sglt2_inhibitor,%ertugliflozin%,%,30,
+statin,%atorvastatin%,%,30,
+statin,%rosuvastatin%,%,30,
+statin,%simvastatin%,%,30,
+statin,%pravastatin%,%,30,
+statin,%lovastatin%,%,30,
+statin,%pitavastatin%,%,30,
+insulin,%insulin%,%,30,insulin products; supplies and GLP-1 combinations match earlier rules
+doac_anticoagulant,%apixaban%,%,30,
+doac_anticoagulant,%rivaroxaban%,%,30,
+doac_anticoagulant,%dabigatran%,%,30,
+doac_anticoagulant,%edoxaban%,%,30,

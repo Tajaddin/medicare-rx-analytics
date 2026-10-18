@@ -50,7 +50,7 @@ jobs:
       - run: bats tests/bats
 
   dbt:
-    name: load and dbt build on the CI sample (fakesnow)
+    name: load, dbt build and BI exports on the CI sample (fakesnow)
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -70,6 +70,14 @@ jobs:
           done
       - name: dbt build (seed, models, tests)
         run: cd dbt && DBT_PROFILES_DIR=. uv run dbt build
+      - name: export the marts, verify the Tableau extract
+        run: |
+          uv run rx export
+          python3 -c "import json; r = json.load(open('reports/exports.json')); assert r['hyper']['ok'], r"
+      - name: Power BI project equals one regenerated from the exports
+        run: uv run python scripts/make_powerbi.py && git diff --exit-code -- bi/powerbi
+      - name: Power BI files against Microsoft's JSON schemas
+        run: uv run bash scripts/validate_pbir.sh
 
   security:
     name: secrets and dependency audit

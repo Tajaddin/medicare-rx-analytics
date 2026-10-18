@@ -49,6 +49,28 @@ jobs:
       - run: shellcheck scripts/*.sh
       - run: bats tests/bats
 
+  dbt:
+    name: load and dbt build on the CI sample (fakesnow)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with: { version: "${{ env.UV_VERSION }}", enable-cache: true }
+      - run: uv sync --locked --all-extras
+      - name: emulator
+        run: |
+          nohup uv run fakesnow -s -p 8085 > fakesnow.log 2>&1 &
+          for _ in $(seq 1 30); do (echo > /dev/tcp/127.0.0.1/8085) 2>/dev/null && exit 0; sleep 1; done
+          cat fakesnow.log; exit 1
+      - name: load the sample of real CMS pages
+        run: |
+          uv run rx bootstrap
+          uv run rx plan | while IFS=$'\t' read -r dataset year id state; do
+            uv run rx load --dataset "$dataset" --year "$year" --pages "tests/fixtures/pages/$dataset/$year"
+          done
+      - name: dbt build (seed, models, tests)
+        run: cd dbt && DBT_PROFILES_DIR=. uv run dbt build
+
   security:
     name: secrets and dependency audit
     runs-on: ubuntu-24.04

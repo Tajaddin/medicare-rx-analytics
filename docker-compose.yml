@@ -1,0 +1,82 @@
+# `make up` starts the emulator and the monitoring; `make pipeline-docker` runs one batch in the `run` profile.
+# Host ports are offset from the usual ones so this stack does not collide with other local projects.
+name: rx
+
+services:
+  emulator:
+    build: { context: ., dockerfile: docker/Dockerfile, target: emulator }
+    image: rx/emulator:local
+    ports: ["8085:8085"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8085), 2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  pipeline:
+    build: { context: ., dockerfile: docker/Dockerfile, target: pipeline }
+    image: rx/pipeline:local
+    profiles: ["run"]
+    entrypoint: ["bash", "scripts/run_pipeline.sh"]
+    environment:
+      SNOWFLAKE_HOST: emulator
+      SNOWFLAKE_PORT: "8085"
+      RX_PUSHGATEWAY: pushgateway:9091
+      RX_RAW_DIR: /data/raw
+      SKIP_EXTRACT: ${SKIP_EXTRACT:-0}
+      # dbt's own files stay inside the container; reports and BI exports come out through the mounts
+      DBT_TARGET_PATH: /tmp/dbt-target
+      DBT_LOG_PATH: /tmp/dbt-logs
+    volumes:
+      - ${RX_HOST_RAW_DIR:-./data/raw}:/data/raw
+      - ${RX_HOST_REPORTS_DIR:-./reports}:/app/reports
+      - ${RX_HOST_EXPORTS_DIR:-./bi/exports}:/app/bi/exports
+    depends_on:
+      emulator: { condition: service_healthy }
+      pushgateway: { condition: service_healthy }
+
+  pushgateway:
+    image: prom/pushgateway:v1.11.1
+    ports: ["9091:9091"]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9091/-/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=30d"]
+    volumes:
+      - ./observability:/etc/prometheus:ro
+    ports: ["9096:9090"]
+    depends_on:
+      pushgateway: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9090/-/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:12.1.1
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-change-me-locally}
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["3006:3000"]
+    depends_on:
+      prometheus: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+

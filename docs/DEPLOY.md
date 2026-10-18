@@ -1,11 +1,11 @@
 # Running it on real accounts
 
-Everything here needs an account that only its owner can create. Nothing below has been run yet; the local
-emulator stands in for Snowflake until it is (ADR 0002).
+Everything here needs an account that only its owner can create. Section 1 was run on 2026-10-18 (results in
+`reports/snowflake/`); the local emulator stays the default for development and CI (ADR 0002).
 
 ## 1. Snowflake trial (free, 30 days)
 
-1. Sign up at https://signup.snowflake.com (Enterprise edition, AWS us-east-1 is fine).
+1. Sign up at https://signup.snowflake.com (Enterprise edition; this run used AWS us-east-2).
 2. Create a key pair for Terraform and one for the pipeline, outside the repo:
 
    ```bash
@@ -15,6 +15,9 @@ emulator stands in for Snowflake until it is (ADR 0002).
 
    Do the same for an admin key, and attach it to your own user in a Snowsight worksheet:
    `ALTER USER <you> SET RSA_PUBLIC_KEY='<body of the admin .pub without the BEGIN/END lines>';`
+   Check the user's name first (`select current_user()`): an account created with "Sign up with Google" can have
+   a lower-case name, which needs double quotes (`ALTER USER "name" ...`), and a login name that is the e-mail
+   address. Terraform's `SNOWFLAKE_USER` is the login name.
 3. Apply the Terraform (credentials from the environment, never from files in the repo):
 
    ```bash
@@ -35,9 +38,11 @@ emulator stands in for Snowflake until it is (ADR 0002).
    make pipeline
    ```
 
-5. Record `reports/pipeline-run.json` and `reports/dbt-build.json` from that run, and the credits used
-   (`select * from snowflake.account_usage.warehouse_metering_history where warehouse_name = 'RX_WH'`). Those are
-   the numbers to quote for Snowflake; the emulator's timings are not.
+   To reuse pages already extracted and keep the emulator's reports, as on 2026-10-18:
+   `SKIP_EXTRACT=1 RX_REPORTS_DIR=reports/snowflake RX_EXPORTS_DIR=<elsewhere> make pipeline RAW=<pages>`.
+5. Record `reports/snowflake/pipeline-run.json` and `dbt-build.json` from that run, and the credits used
+   (`rx.information_schema.warehouse_metering_history` for RX_WH, queried from another warehouse so the check
+   does not bill RX_WH). Those are the numbers to quote for Snowflake; the emulator's timings are not.
 
 ## 2. Power BI Desktop (free)
 
@@ -50,12 +55,20 @@ emulator stands in for Snowflake until it is (ADR 0002).
 
 ## 3. Tableau Public (free account)
 
-1. Open Tableau Public (desktop app), connect to **More... > Other files**, pick `bi/exports/rx_marts.hyper`
-   (schema `Extract`, six tables).
-2. Sheets the extract was built for: drug cost by year and class (`mart_drug_spend_trend`), GLP-1 claims by
-   product and year (`mart_glp1_growth`), opioid share of claims by city (`mart_opioid_by_city`, a map on city
-   name with State = Florida), and brand spend above generic cost (`mart_generic_opportunity`).
-3. Save to Tableau Public and add the link to the README.
+Published on 2026-10-18:
+[Florida Medicare Part D prescribing, 2022-2024](https://public.tableau.com/app/profile/tajaddin.gafarov/viz/FloridaMedicarePartDprescribing2022-2024/FloridaMedicarePartDprescribing2022-2024).
+It was built in the browser (Tableau Public's web editor reads CSV, not `.hyper`); publish as soon as it is
+built, because an idle editor session expires and drops uploaded files:
+
+1. `python scripts/make_tableau_public.py` writes three tidy CSVs from the marts to `bi/tableau-public/`: GLP-1
+   claims by drug and year, opioid share of claims in the 15 largest cities (2024), and the top 10 drugs by 2024
+   cost.
+2. In Tableau Public, Create > Web Authoring, upload each CSV as its own data source (Data > New Data Source >
+   Files), one sheet each, then a dashboard with the three sheets and the source line under the title.
+3. Publish As..., and add the link to the README.
+
+With the desktop app instead, connect to **More... > Other files**, pick `bi/exports/rx_marts.hyper` (schema
+`Extract`, six tables) and build from the marts directly.
 
 ## 4. GitHub Projects board
 

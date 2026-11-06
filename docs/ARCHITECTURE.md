@@ -40,7 +40,7 @@ flowchart LR
 
 | Layer | Where | Grain | Notes |
 |---|---|---|---|
-| Pages | `data/raw/<dataset>/<year>/page-*.json` | one API page (5,000 rows) | `manifest.json` records the API's row count and the rows on disk |
+| Pages | `data/raw/<dataset>/<year>/page-*.json` | one API page (5,000 rows) | `manifest.json` records the source CSV the API serves (name, SHA-1, modified time), its row count and the rows on disk; a re-published source is fetched again |
 | Raw | `RAW.PARTD_PRESCRIBER_DRUG`, `RAW.PARTD_SPENDING_BY_DRUG` | one API row as VARIANT | plus `data_year`, `source_file`, `loaded_at` ([ADR 0001](adr/0001-raw-json-as-variant-schema-on-read-in-dbt.md)) |
 | Staging | `stg_prescriber_drug`, `stg_spending_by_drug` (views) | typed rows; spending unpivoted to one row per year | prescriber names dropped here; blanks stay NULL (suppressed) |
 | Intermediate | `int_drug_class`, `int_prescriber_drug` (views) | product class; row with class, brand flag, unit costs | classes from ordered, reviewed rules ([ADR 0004](adr/0004-drug-classes-per-product-from-reviewed-rules.md)) |

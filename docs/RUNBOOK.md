@@ -11,7 +11,7 @@ console log has the error.
 | Stage | Usual cause | What to do |
 |---|---|---|
 | extract | CMS API down or slow (the script retries 5 times with backoff) | re-run; finished pages are kept, so it resumes |
-| extract | "row count mismatch" | CMS changed the data during the run; delete that dataset-year folder and re-run it |
+| extract | "row count mismatch" | CMS changed the data during the run; re-run: a re-published source is fetched again from the first page |
 | load | warehouse unreachable, or credentials | check `SNOWFLAKE_*`; on the emulator, check it is running |
 | dbt | a test failed (see RxDataTestsFailing) | read `reports/dbt-build.json` for the failing node |
 | export | Tableau extract does not read back equal | see RxTableauExtractMismatch |

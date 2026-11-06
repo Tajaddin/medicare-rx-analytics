@@ -9,7 +9,7 @@ authors = [{ name = "Tajaddin Gafarov", email = "gafarovtajaddin@gmail.com" }]
 dependencies = [
   "snowflake-connector-python>=4.0",
   "dbt-core==1.12.6",
-  "dbt-snowflake==1.12.3",
+  "dbt-snowflake==1.12.4",
   "pandas>=2.3,<3",
   "pyarrow>=21",
   "tableauhyperapi>=0.0.26963",

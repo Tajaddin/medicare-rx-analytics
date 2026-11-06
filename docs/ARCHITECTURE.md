@@ -49,7 +49,8 @@ flowchart LR
 ## Quality gates
 
 - **Extraction:** rows on disk equal the API's own count for every dataset-year, or the run stops.
-- **Load:** rows in raw equal rows copied, inside the transaction that replaced the year.
+- **Load:** exactly the pages the extract's manifest lists, from a stage folder of the load's own; rows copied
+  equal the manifest's before the year is replaced, and rows in raw equal rows copied.
 - **dbt (37 tests):** grain uniqueness on every model, not-null and range tests, CMS formats parse, every raw
   record reaches staging, the fact table keeps every staging row, mart totals equal staging totals, suppressed
   counts are never back-filled, and 23 pinned drug-class edge cases.

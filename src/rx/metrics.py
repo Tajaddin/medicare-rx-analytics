@@ -4,15 +4,20 @@ collector. Inputs are the files the run already writes, so the metrics cannot di
 - reports/pipeline-run.json   stage timings and status (scripts/run_pipeline.sh)
 - dbt/target/run_results.json  dbt's own results: every model and test with its status
 - reports/exports.json         rows per mart and the Hyper read-back check (`rx export`)
+
+A run publishes only what it measured. Everything else keeps its last value, on the Pushgateway (POST replaces
+only the metrics named in the push) and in the textfile: after a failed run the last success time still ages
+towards RxPipelineStale, and the last dbt result stands until dbt runs again.
 """
 
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
-from prometheus_client import CollectorRegistry, Gauge
+from prometheus_client import CollectorRegistry, Gauge, Metric
 
 JOB = "rx_pipeline"
 
@@ -62,17 +67,19 @@ def build_registry(
         Gauge("rx_pipeline_last_success_timestamp_seconds", "When the last successful run ended", registry=reg).set(
             run["finished_at_epoch"]
         )
-    stage = Gauge("rx_pipeline_stage_seconds", "Wall time per stage of the last run", ["stage"], registry=reg)
-    for s in run.get("stages", []):
-        stage.labels(s["name"]).set(s["seconds"])
-    raw = Gauge(
-        "rx_raw_rows",
-        "Rows in the raw layer per dataset and year after the last load",
-        ["dataset", "year"],
-        registry=reg,
-    )
-    for load in run.get("loads", []):
-        raw.labels(load["dataset"], str(load["year"])).set(load["rows"])
+    if run.get("stages"):
+        stage = Gauge("rx_pipeline_stage_seconds", "Wall time per stage of the last run", ["stage"], registry=reg)
+        for s in run["stages"]:
+            stage.labels(s["name"]).set(s["seconds"])
+    if run.get("loads"):
+        raw = Gauge(
+            "rx_raw_rows",
+            "Rows in the raw layer per dataset and year after the last load",
+            ["dataset", "year"],
+            registry=reg,
+        )
+        for load in run["loads"]:
+            raw.labels(load["dataset"], str(load["year"])).set(load["rows"])
 
     if dbt is not None:
         summary = dbt_summary(dbt)
@@ -84,14 +91,36 @@ def build_registry(
         Gauge("rx_dbt_elapsed_seconds", "dbt build wall time", registry=reg).set(dbt.get("elapsed_time", 0.0))
 
     if exports is not None:
-        rows = Gauge("rx_export_rows", "Rows exported per mart", ["mart"], registry=reg)
-        for mart, n in exports.get("marts", {}).items():
-            rows.labels(mart.lower()).set(n)
+        if exports.get("marts"):
+            rows = Gauge("rx_export_rows", "Rows exported per mart", ["mart"], registry=reg)
+            for mart, n in exports["marts"].items():
+                rows.labels(mart.lower()).set(n)
         if "hyper" in exports:
             Gauge("rx_hyper_verified", "1 if the Tableau extract read back equal to the marts", registry=reg).set(
                 int(bool(exports["hyper"].get("ok")))
             )
     return reg
+
+
+class _Previous:
+    """The metric families of an earlier textfile, as a collector."""
+
+    def __init__(self, families: list[Metric]) -> None:
+        self.families = families
+
+    def collect(self) -> Iterable[Metric]:
+        return self.families
+
+
+def _keep_unmeasured(reg: CollectorRegistry, textfile: Path) -> None:
+    """Add the families of the previous textfile that this run did not measure: what a Pushgateway POST keeps."""
+    if not textfile.exists():
+        return
+    from prometheus_client.parser import text_string_to_metric_families
+
+    measured = {m.name for m in reg.collect()}
+    previous = text_string_to_metric_families(textfile.read_text(encoding="utf-8"))
+    reg.register(_Previous([m for m in previous if m.name not in measured]))
 
 
 def publish(
@@ -112,12 +141,13 @@ def publish(
         dbt_report_path.parent.mkdir(parents=True, exist_ok=True)
         dbt_report_path.write_text(json.dumps(dbt_report(dbt), indent=2) + "\n", encoding="utf-8")
     if pushgateway:
-        from prometheus_client import push_to_gateway
+        from prometheus_client import pushadd_to_gateway
 
-        push_to_gateway(pushgateway, job=JOB, registry=reg, timeout=10)
+        pushadd_to_gateway(pushgateway, job=JOB, registry=reg, timeout=10)
     if textfile:
         from prometheus_client import write_to_textfile
 
         textfile.parent.mkdir(parents=True, exist_ok=True)
+        _keep_unmeasured(reg, textfile)
         write_to_textfile(str(textfile), reg)
     return reg

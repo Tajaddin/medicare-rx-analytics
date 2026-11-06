@@ -1,12 +1,13 @@
 # `make up` starts the emulator and the monitoring; `make pipeline-docker` runs one batch in the `run` profile.
-# Host ports are offset from the usual ones so this stack does not collide with other local projects.
+# Host ports are offset from the usual ones so this stack does not collide with other local projects, and bound to
+# 127.0.0.1: the emulator has fixed credentials, the Pushgateway none, and Grafana lets anyone view.
 name: rx
 
 services:
   emulator:
     build: { context: ., dockerfile: docker/Dockerfile, target: emulator }
     image: rx/emulator:local
-    ports: ["8085:8085"]
+    ports: ["127.0.0.1:8085:8085"]
     healthcheck:
       test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8085), 2)"]
       interval: 5s
@@ -38,7 +39,7 @@ services:
 
   pushgateway:
     image: prom/pushgateway:v1.11.1
-    ports: ["9091:9091"]
+    ports: ["127.0.0.1:9091:9091"]
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9091/-/ready"]
       interval: 5s
@@ -51,7 +52,7 @@ services:
     command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=30d"]
     volumes:
       - ./observability:/etc/prometheus:ro
-    ports: ["9096:9090"]
+    ports: ["127.0.0.1:9096:9090"]
     depends_on:
       pushgateway: { condition: service_healthy }
     healthcheck:
@@ -70,7 +71,7 @@ services:
     volumes:
       - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
-    ports: ["3006:3000"]
+    ports: ["127.0.0.1:3006:3000"]
     depends_on:
       prometheus: { condition: service_healthy }
     healthcheck:

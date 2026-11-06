@@ -11,15 +11,17 @@ Power BI and Tableau, with the run monitored in Prometheus and Grafana.
 | What | Result | Source |
 |---|---|---|
 | Extraction | **5,869,525 Florida rows and 14,536 national rows (1,179 pages) in 25 min, 0 retries**; every dataset-year's rows on disk equal the API's own count | [`reports/extract/`](reports/extract), [`run-environment.json`](reports/run-environment.json) |
-| Load, build, export | **257 s end to end**: load 165 s (about 50 s a year), dbt 83 s, export 5 s, on a local Snowflake emulator | [`pipeline-run.json`](reports/pipeline-run.json) |
+| Load, build, export | **257 s end to end**: load 165 s (about 50 s a year), dbt 83 s, export 5 s, on a local Snowflake emulator (2026-10-18 run, 37 dbt tests) | [`pipeline-run.json`](reports/pipeline-run.json) |
 | On Snowflake (trial account, AWS us-east-2, X-Small warehouse) | The same run as the key-pair service user: **831 s end to end** (load 642 s, mostly uploading 3.2 GB of pages from a home connection; dbt 88 s; export 30 s), **49 of 49 dbt nodes pass**, every mart **equal to the emulator's** (row counts and 44 numeric column sums, within 2e-7), **0.13 credits** | [`reports/snowflake/`](reports/snowflake) |
-| Data quality | **49 of 49 dbt nodes pass** (1 seed, 11 models, 37 tests) on the full data | [`dbt-build.json`](reports/dbt-build.json) |
+| Data quality | **50 of 50 dbt nodes pass** (1 seed, 11 models, 38 tests) on the full data | [`dbt-build.json`](reports/dbt-build.json) |
 | BI | Tableau extract **reads back equal** to all 6 marts (row counts and every numeric column's sum); the Power BI project opens and refreshes in Power BI Desktop; a [**live Tableau Public dashboard**](https://public.tableau.com/app/profile/tajaddin.gafarov/viz/FloridaMedicarePartDprescribing2022-2024/FloridaMedicarePartDprescribing2022-2024) shows GLP-1 growth, opioid share by city and the costliest drugs | [`exports.json`](reports/exports.json), [screenshots](docs/img) |
 | A bug the data found | Name patterns had put **apomorphine** (Parkinson's) in opioids, **Contrave and Relistor** in addiction treatment and **insulin syringes** in insulin; classes are now per product, follow CDC's opioid definitions, and 23 reviewed edge cases are pinned by a test | [ADR 0004](docs/adr/0004-drug-classes-per-product-from-reviewed-rules.md) |
 
 The emulator timings are from one desktop (Intel i5-13600KF, WSL2 with 15.5 GB) against
 [fakesnow](https://github.com/tekumara/fakesnow), which peaked at 9.3 GB of memory. The Snowflake row ran on a
-trial account on 2026-10-18 ([DEPLOY.md](docs/DEPLOY.md)).
+trial account on 2026-10-18 ([DEPLOY.md](docs/DEPLOY.md)). The data-quality row is a full run of the current
+tests on 2026-11-06, on the same desktop while other work kept its CPU busy, so that run's timings are not
+comparable with the ones above.
 
 ## What the data says (gross cost, before manufacturer rebates)
 
@@ -67,11 +69,12 @@ three-year run is `make extract` (about 25 minutes, 3.2 GB) then `make pipeline`
 
 ## Testing and CI
 
-- **35 Python tests, 97% line coverage**, against an in-process emulator: loading, idempotent reloads, paths
-  with spaces, input validation, export types, the Hyper read-back catching a wrong sum, metrics.
-- **10 bats tests** for the Bash extractor (resume, retries, corrupt pages, unreachable API) and the orchestrator
-  (stage order, failure reporting, exit codes), against a fake CMS API.
-- **37 dbt tests** on every run, plus **5 alert rules with promtool tests**.
+- **43 Python tests, 98% line coverage**, against an in-process emulator: loading, idempotent reloads, only the
+  extract's pages and nothing an earlier load left on the stage, paths with spaces, input validation, export
+  types, the Hyper read-back catching a wrong sum, metrics that keep the last success after a failed run.
+- **14 bats tests** for the Bash extractor (resume, retries, corrupt pages, a re-published source, unreachable
+  API) and the orchestrator (stage order, failure reporting, exit codes), against a fake CMS API.
+- **38 dbt tests** on every run, plus **5 alert rules with promtool tests**.
 - CI runs all of that, the whole pipeline on the sample, the compose stack end to end (checks that Prometheus
   received the run), Terraform validate/tflint/trivy, the Power BI project against Microsoft's schemas and
   against a regenerated copy, gitleaks, pip-audit and an image scan.

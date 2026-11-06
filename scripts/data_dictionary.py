@@ -28,7 +28,7 @@ NOTES = {
     "prescribers": "distinct prescribers (NPI)",
     "cost_per_claim": "drug_cost / claims",
     "national_cost_per_claim": "same generic name, all states, from Part D Spending by Drug",
-    "cost_growth_yoy": "drug_cost against the same generic name and class a year earlier; empty in the first year",
+    "cost_growth_yoy": "drug_cost against the same generic name and class the calendar year before; else empty",
     "cost_rank_in_year": "rank by drug_cost within the year (1 = largest)",
     "share_of_specialty_claims": "the class's share of all claims by that specialty that year",
     "brand_fills": "30-day fills of branded products with this generic name",

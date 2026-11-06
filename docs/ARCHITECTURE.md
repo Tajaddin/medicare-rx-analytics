@@ -10,7 +10,7 @@ flowchart LR
     subgraph Batch["scripts/run_pipeline.sh (Bash, timed per stage)"]
         E["extract_cms.sh<br/>paged, resumable, row-count verified"]
         L["rx load<br/>PUT, COPY INTO, one transaction per year"]
-        D["dbt build<br/>seed, 11 models, 37 tests"]
+        D["dbt build<br/>seed, 11 models, 38 tests"]
         X["rx export<br/>Parquet, CSV, .hyper + read-back check"]
         M["rx metrics"]
     end
@@ -51,9 +51,10 @@ flowchart LR
 - **Extraction:** rows on disk equal the API's own count for every dataset-year, or the run stops.
 - **Load:** exactly the pages the extract's manifest lists, from a stage folder of the load's own; rows copied
   equal the manifest's before the year is replaced, and rows in raw equal rows copied.
-- **dbt (37 tests):** grain uniqueness on every model, not-null and range tests, CMS formats parse, every raw
-  record reaches staging, the fact table keeps every staging row, mart totals equal staging totals, suppressed
-  counts are never back-filled, and 23 pinned drug-class edge cases.
+- **dbt (38 tests):** grain uniqueness on every model, not-null and range tests, CMS formats parse, every raw
+  record reaches staging, the fact table keeps every staging row, year-over-year growth only between
+  consecutive years, mart totals equal staging totals, suppressed counts are never back-filled, and 23 pinned
+  drug-class edge cases.
 - **Export:** the Tableau extract reads back with the same row counts and column sums as the marts.
 - **CI:** the whole pipeline runs on a committed sample of real CMS records; the Power BI project is regenerated
   and must equal the committed one; every BI JSON file validates against Microsoft's schemas.

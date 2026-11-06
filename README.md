@@ -43,7 +43,7 @@ flowchart LR
     API["CMS data API"] --> X["extract_cms.sh<br/>paged, resumable,<br/>count-verified"]
     X --> L["rx load<br/>PUT + COPY INTO"]
     L --> R[("RAW<br/>VARIANT")]
-    R --> D["dbt<br/>staging, classes, marts<br/>37 tests"]
+    R --> D["dbt<br/>staging, classes, marts<br/>38 tests"]
     D --> E["rx export<br/>Parquet + .hyper<br/>read-back check"]
     E --> PB["Power BI<br/>TMDL + PBIR"] & TB["Tableau"]
     X & L & D & E -. run report .-> M["Pushgateway → Prometheus → Grafana"]

@@ -47,5 +47,5 @@ public use files published by a U.S. federal agency.
 
 ## Quality checks that run on every load
 
-See [ARCHITECTURE.md](ARCHITECTURE.md#quality-gates): API-count match, load-count match, 37 dbt tests and the
+See [ARCHITECTURE.md](ARCHITECTURE.md#quality-gates): API-count match, load-count match, 38 dbt tests and the
 extract read-back.

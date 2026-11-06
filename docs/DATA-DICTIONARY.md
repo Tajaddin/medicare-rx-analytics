@@ -20,7 +20,7 @@ Grain: one row per `generic_name`, `drug_class`, `data_year`.
 | `prescribers` | int64 | distinct prescribers (NPI) |
 | `cost_per_claim` | double | drug_cost / claims |
 | `national_cost_per_claim` | double | same generic name, all states, from Part D Spending by Drug |
-| `cost_growth_yoy` | double | drug_cost against the same generic name and class a year earlier; empty in the first year |
+| `cost_growth_yoy` | double | drug_cost against the same generic name and class the calendar year before; else empty |
 | `cost_rank_in_year` | int64 | rank by drug_cost within the year (1 = largest) |
 
 ## mart_specialty_class_year

@@ -26,7 +26,7 @@ No successful run for 8 days. Check the scheduler first (did it run at all?), th
 
 1. `reports/dbt-build.json` lists every node with its status.
 2. `cd dbt && dbt test --select <test> --store-failures` keeps the failing rows in a table to look at.
-3. Typical causes: CMS added or renamed a column (the `numbers_parse` and `raw_rows_reach_staging` tests fire),
+3. Typical causes: CMS added or renamed a column (the `raw_records_have_every_field` and `numbers_parse` tests fire),
    a new product broke a grain test, or a pinned drug-class edge case moved (a seed edit).
 
 ## RxTableauExtractMismatch

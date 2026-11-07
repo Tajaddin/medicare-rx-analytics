@@ -10,7 +10,7 @@ flowchart LR
     subgraph Batch["scripts/run_pipeline.sh (Bash, timed per stage)"]
         E["extract_cms.sh<br/>paged, resumable, row-count verified"]
         L["rx load<br/>PUT, COPY INTO, one transaction per year"]
-        D["dbt build<br/>seed, 11 models, 37 tests"]
+        D["dbt build<br/>seed, 11 models, 38 tests"]
         X["rx export<br/>Parquet, CSV, .hyper + read-back check"]
         M["rx metrics"]
     end
@@ -40,7 +40,7 @@ flowchart LR
 
 | Layer | Where | Grain | Notes |
 |---|---|---|---|
-| Pages | `data/raw/<dataset>/<year>/page-*.json` | one API page (5,000 rows) | `manifest.json` records the API's row count and the rows on disk |
+| Pages | `data/raw/<dataset>/<year>/page-*.json` | one API page (5,000 rows) | `manifest.json` records the source CSV the API serves (name, SHA-1, modified time), its row count and the rows on disk; a re-published source is fetched again |
 | Raw | `RAW.PARTD_PRESCRIBER_DRUG`, `RAW.PARTD_SPENDING_BY_DRUG` | one API row as VARIANT | plus `data_year`, `source_file`, `loaded_at` ([ADR 0001](adr/0001-raw-json-as-variant-schema-on-read-in-dbt.md)) |
 | Staging | `stg_prescriber_drug`, `stg_spending_by_drug` (views) | typed rows; spending unpivoted to one row per year | prescriber names dropped here; blanks stay NULL (suppressed) |
 | Intermediate | `int_drug_class`, `int_prescriber_drug` (views) | product class; row with class, brand flag, unit costs | classes from ordered, reviewed rules ([ADR 0004](adr/0004-drug-classes-per-product-from-reviewed-rules.md)) |
@@ -49,10 +49,12 @@ flowchart LR
 ## Quality gates
 
 - **Extraction:** rows on disk equal the API's own count for every dataset-year, or the run stops.
-- **Load:** rows in raw equal rows copied, inside the transaction that replaced the year.
-- **dbt (37 tests):** grain uniqueness on every model, not-null and range tests, CMS formats parse, every raw
-  record reaches staging, the fact table keeps every staging row, mart totals equal staging totals, suppressed
-  counts are never back-filled, and 23 pinned drug-class edge cases.
+- **Load:** exactly the pages the extract's manifest lists, from a stage folder of the load's own; rows copied
+  equal the manifest's before the year is replaced, and rows in raw equal rows copied.
+- **dbt (38 tests):** grain uniqueness on every model, not-null and range tests, every raw record has every
+  field staging reads and every number in it parses, the fact table keeps every staging row, year-over-year
+  growth only between consecutive years, mart totals equal staging totals, suppressed counts are never
+  back-filled, and 23 pinned drug-class edge cases.
 - **Export:** the Tableau extract reads back with the same row counts and column sums as the marts.
 - **CI:** the whole pipeline runs on a committed sample of real CMS records; the Power BI project is regenerated
   and must equal the committed one; every BI JSON file validates against Microsoft's schemas.

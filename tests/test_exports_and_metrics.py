@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Iterator
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
+from threading import Thread
 
 import pandas as pd
 import pyarrow.parquet as pq
 import pytest
+from prometheus_client.parser import text_string_to_metric_families
 
 from rx.exports import ExportResult, verify_hyper, write_files, write_hyper
 from rx.metrics import build_registry, dbt_summary, publish
@@ -112,6 +116,79 @@ def test_publish_writes_a_textfile(tmp_path: Path) -> None:
     text = out.read_text(encoding="utf-8")
     assert 'rx_pipeline_stage_seconds{stage="load"} 160.9' in text
     assert "rx_dbt_failures" not in text  # no dbt results, no dbt metrics
+
+
+# A run that failed in its first stage: nothing was loaded, tested or exported.
+FAILED = {
+    **RUN,
+    "status": "failed",
+    "failed_stage": "extract",
+    "finished_at_epoch": 1_760_600_000,
+    "stages": [],
+    "loads": [],
+}
+
+
+def families(text: str) -> dict[str, list[tuple[dict[str, str], float]]]:
+    return {m.name: [(s.labels, s.value) for s in m.samples] for m in text_string_to_metric_families(text)}
+
+
+def test_a_failed_run_keeps_the_last_success_and_dbt_result_in_the_textfile(tmp_path: Path) -> None:
+    run, dbt, out = tmp_path / "run.json", tmp_path / "run_results.json", tmp_path / "rx.prom"
+    run.write_text(json.dumps(RUN), encoding="utf-8")
+    dbt.write_text(json.dumps(DBT), encoding="utf-8")
+    publish(run, dbt, None, pushgateway=None, textfile=out)
+    run.write_text(json.dumps(FAILED), encoding="utf-8")
+    publish(run, tmp_path / "missing.json", None, pushgateway=None, textfile=out)
+
+    metrics = families(out.read_text(encoding="utf-8"))
+    assert metrics["rx_pipeline_last_run_success"] == [({}, 0)]
+    assert metrics["rx_pipeline_last_run_timestamp_seconds"] == [({}, 1_760_600_000)]
+    # Without these, RxPipelineStale could never fire and RxDataTestsFailing would resolve untested.
+    assert metrics["rx_pipeline_last_success_timestamp_seconds"] == [({}, 1_760_000_000)]
+    assert metrics["rx_dbt_failures"] == [({}, 1)]
+    assert metrics["rx_raw_rows"] == [({"dataset": "prescriber_drug", "year": "2024"}, 2048452)]
+
+
+@pytest.fixture
+def pushgateway() -> Iterator[tuple[str, list[tuple[str, str, str]]]]:
+    """A stand-in Pushgateway that records each request: (method, path, body)."""
+    requests: list[tuple[str, str, str]] = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *args: object) -> None:
+            return
+
+        def _record(self) -> None:
+            body = self.rfile.read(int(self.headers.get("Content-Length", 0))).decode()
+            requests.append((self.command, self.path, body))
+            self.send_response(200)
+            self.end_headers()
+
+        def do_PUT(self) -> None:
+            self._record()
+
+        def do_POST(self) -> None:
+            self._record()
+
+    server = HTTPServer(("127.0.0.1", 0), Handler)
+    Thread(target=server.serve_forever, daemon=True).start()
+    yield f"127.0.0.1:{server.server_address[1]}", requests
+    server.shutdown()
+
+
+def test_a_failed_run_replaces_only_what_it_measured_on_the_pushgateway(
+    tmp_path: Path, pushgateway: tuple[str, list[tuple[str, str, str]]]
+) -> None:
+    address, requests = pushgateway
+    run = tmp_path / "run.json"
+    run.write_text(json.dumps(FAILED), encoding="utf-8")
+    publish(run, tmp_path / "missing.json", None, pushgateway=address, textfile=None)
+
+    [(method, path, body)] = requests
+    # PUT replaces every metric of the job; POST only those named in the body, so the rest keep their last values.
+    assert (method, path) == ("POST", "/metrics/job/rx_pipeline")
+    assert set(families(body)) == {"rx_pipeline_last_run_success", "rx_pipeline_last_run_timestamp_seconds"}
 
 
 def test_publish_writes_the_dbt_report(tmp_path: Path) -> None:

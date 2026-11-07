@@ -1,6 +1,7 @@
 -- Florida Part D spend per generic name, class and year, with year-over-year growth and the national cost per
 -- claim. Class is part of the grain because one generic name can serve two uses (buprenorphine: pain patches
--- and OUD treatment).
+-- and OUD treatment). Growth compares with the calendar year before; after a year without Florida claims it is
+-- empty, not growth over two years.
 with fl as (
     select
         generic_name,
@@ -30,9 +31,10 @@ select
     fl.prescribers,
     fl.drug_cost / nullif(fl.claims, 0) as cost_per_claim,
     n.national_cost_per_claim,
-    fl.drug_cost / nullif(lag(fl.drug_cost) over (partition by fl.generic_name, fl.drug_class order by fl.data_year), 0) - 1
-        as cost_growth_yoy,
+    fl.drug_cost / nullif(prev.drug_cost, 0) - 1 as cost_growth_yoy,
     rank() over (partition by fl.data_year order by fl.drug_cost desc) as cost_rank_in_year
 from fl
+left join fl as prev
+    on fl.generic_name = prev.generic_name and fl.drug_class = prev.drug_class and fl.data_year = prev.data_year + 1
 left join national as n
     on upper(fl.generic_name) = upper(n.generic_name) and fl.data_year = n.data_year

@@ -11,12 +11,22 @@ setup() {
 }
 
 start_fake() {
-  # $1 = total rows, $2 = "flaky" to fail every first request for a page
+  # $1 = total rows, $2 = "flaky" to fail every first request for a page; FAKE_REVISION re-publishes the source
   PORT_FILE="$BATS_TEST_TMPDIR/port"
+  rm -f "$PORT_FILE"
   python3 "$BATS_TEST_DIRNAME/fake_cms_api.py" "$1" "${2:-}" "$PORT_FILE" &
   FAKE_PID=$!
   for _ in $(seq 1 50); do [[ -s $PORT_FILE ]] && break; sleep 0.1; done
   export CMS_API_BASE="http://127.0.0.1:$(cat "$PORT_FILE")/data-api/v1/dataset"
+}
+
+stop_fake() {
+  kill "$FAKE_PID" 2>/dev/null || true
+  wait "$FAKE_PID" 2>/dev/null || true
+}
+
+manifest() {
+  python3 -c "import json,sys; m=json.load(open(sys.argv[1])); print(eval(sys.argv[2]))" "$OUT/manifest.json" "$1"
 }
 
 teardown() {
@@ -70,6 +80,51 @@ teardown() {
   [ "$status" -eq 0 ]
   run python3 -c 'import json,sys; print(len(json.load(open(sys.argv[1]))))' "$OUT/page-00001.json"
   [ "$output" = "2" ]
+}
+
+@test "the manifest names the source file and has no row count until the pages are verified" {
+  start_fake 5 flaky
+  MAX_RETRIES=1 run bash "$SCRIPT" "$DATASET" "$OUT" FL
+  [ "$status" -eq 1 ]
+  [ "$(manifest 'm["rows"], m["expected_rows"], m["source_file"]')" = "(None, 5, 'rows-5-revision-1.csv')" ]
+  MAX_RETRIES=2 run bash "$SCRIPT" "$DATASET" "$OUT" FL
+  [ "$status" -eq 0 ]
+  [ "$(manifest 'm["rows"], m["source_modified"], len(m["source_sha1"])')" = "(5, '2026-05-05T16:53:21Z', 40)" ]
+}
+
+@test "a source re-published with the same row count is fetched again" {
+  start_fake 5
+  bash "$SCRIPT" "$DATASET" "$OUT" FL
+  before=$(cat "$OUT/page-00000.json")
+  sha1=$(manifest 'm["source_sha1"]')
+  stop_fake
+  FAKE_REVISION=2 start_fake 5
+  run bash "$SCRIPT" "$DATASET" "$OUT" FL
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"fetching every page again"* ]]
+  [ "$(cat "$OUT/page-00000.json")" != "$before" ]
+  [ "$(manifest 'm["source_sha1"]')" != "$sha1" ]
+  [ "$(manifest 'm["rows"]')" = "5" ]
+}
+
+@test "a source re-published with fewer rows replaces the pages instead of failing" {
+  start_fake 5
+  bash "$SCRIPT" "$DATASET" "$OUT" FL
+  stop_fake
+  start_fake 3
+  run bash "$SCRIPT" "$DATASET" "$OUT" FL
+  [ "$status" -eq 0 ]
+  [ -s "$OUT/page-00001.json" ] && [ ! -e "$OUT/page-00002.json" ]
+  [ "$(manifest 'm["rows"], m["expected_rows"], m["pages"]')" = "(3, 3, 2)" ]
+}
+
+@test "pages fetched with another page size are fetched again" {
+  start_fake 5
+  bash "$SCRIPT" "$DATASET" "$OUT" FL
+  PAGE_SIZE=5 run bash "$SCRIPT" "$DATASET" "$OUT" FL
+  [ "$status" -eq 0 ]
+  [ ! -e "$OUT/page-00001.json" ]
+  [ "$(manifest 'm["rows"], m["pages"], m["page_size"]')" = "(5, 1, 5)" ]
 }
 
 @test "fails when the API cannot be reached" {

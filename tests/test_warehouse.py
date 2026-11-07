@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,17 @@ def count(conn: Any, sql: str) -> int:
     cur = conn.cursor()
     cur.execute(sql)
     return int(cur.fetchone()[0])
+
+
+def page_rows(*pages: Path) -> int:
+    return sum(len(json.loads(p.read_text(encoding="utf-8"))) for p in pages)
+
+
+def extract(src: Path, dest: Path, pages: int, rows: int | None) -> Path:
+    """A copy of a fixture folder with the manifest.json extract_cms.sh writes, claiming `pages` and `rows`."""
+    shutil.copytree(src, dest)
+    (dest / "manifest.json").write_text(json.dumps({"pages": pages, "rows": rows}), encoding="utf-8")
+    return dest
 
 
 def test_bootstrap_is_idempotent(conn: Any) -> None:
@@ -70,6 +82,56 @@ def test_page_paths_with_spaces_load(conn: Any, tmp_path: Path) -> None:
     shutil.copytree(PAGES / "spending_by_drug" / "2024", pages)
     result = load_year(conn, "RX", "spending_by_drug", 2024, pages)
     assert result.rows == fixture_rows("spending_by_drug", 2024)
+
+
+def test_files_an_earlier_load_left_on_the_stage_are_not_copied(conn: Any, tmp_path: Path) -> None:
+    src = PAGES / "spending_by_drug" / "2024"
+    load_year(conn, "RX", "spending_by_drug", 2024, src)  # four pages on the stage
+    fewer = tmp_path / "2024"
+    fewer.mkdir()
+    for page in sorted(src.glob("page-*.json"))[:3]:
+        shutil.copy(page, fewer)
+    result = load_year(conn, "RX", "spending_by_drug", 2024, fewer)
+    assert result.files == 3
+    assert result.rows == page_rows(*fewer.glob("page-*.json")) < fixture_rows("spending_by_drug", 2024)
+
+
+def test_only_the_pages_in_the_manifest_are_loaded(conn: Any, tmp_path: Path) -> None:
+    src = PAGES / "prescriber_drug" / "2024"
+    rows = page_rows(src / "page-00000.json", src / "page-00001.json")
+    pages = extract(src, tmp_path / "2024", pages=2, rows=rows)  # page-00002.json is left over from another extract
+    result = load_year(conn, "RX", "prescriber_drug", 2024, pages)
+    assert (result.files, result.rows) == (2, rows)
+
+
+def test_an_unfinished_extract_is_not_loaded(conn: Any, tmp_path: Path) -> None:
+    pages = extract(PAGES / "prescriber_drug" / "2024", tmp_path / "2024", pages=3, rows=None)
+    with pytest.raises(RuntimeError, match="not finished"):
+        load_year(conn, "RX", "prescriber_drug", 2024, pages)
+
+
+def test_a_page_the_manifest_lists_must_be_there(conn: Any, tmp_path: Path) -> None:
+    pages = extract(PAGES / "prescriber_drug" / "2024", tmp_path / "2024", pages=4, rows=1000)
+    with pytest.raises(FileNotFoundError, match=r"1 missing pages, e\.g\. page-00003\.json"):
+        load_year(conn, "RX", "prescriber_drug", 2024, pages)
+
+
+def test_a_load_short_of_the_manifest_leaves_the_year_as_it_was(conn: Any, tmp_path: Path) -> None:
+    src = PAGES / "prescriber_drug" / "2023"
+    load_year(conn, "RX", "prescriber_drug", 2023, src)
+    expected = fixture_rows("prescriber_drug", 2023)
+    pages = extract(src, tmp_path / "2023", pages=3, rows=expected + 1)
+    with pytest.raises(RuntimeError, match=f"copied {expected} rows but the extract holds {expected + 1}"):
+        load_year(conn, "RX", "prescriber_drug", 2023, pages)
+    table = "RX.RAW.PARTD_PRESCRIBER_DRUG"
+    assert count(conn, f"select count(*) from {table} where data_year = 2023") == expected
+
+
+def test_a_load_leaves_no_files_on_the_stage(conn: Any) -> None:
+    load_year(conn, "RX", "spending_by_drug", 2024, PAGES / "spending_by_drug" / "2024")
+    cur = conn.cursor()
+    cur.execute("list @RX.RAW.LANDING")
+    assert [name for name, *_ in cur.fetchall() if "spending_by_drug/2024/" in name] == []
 
 
 @pytest.mark.parametrize(

@@ -1,14 +1,17 @@
 """A tiny stand-in for the CMS data API used by the bats tests.
 
-    python fake_cms_api.py TOTAL_ROWS [flaky] PORT_FILE
+    FAKE_REVISION=1 python fake_cms_api.py TOTAL_ROWS [flaky] PORT_FILE
 
-Serves /data-api/v1/dataset/<id>/data/stats and /data?size=&offset= with synthetic rows. With "flaky", the first
-request for each page answers 503.
+Serves /data-api/v1/dataset/<id>/data/stats, /data-viewer (the source file's name, SHA-1 and modification time) and
+/data?size=&offset= with synthetic rows. FAKE_REVISION stands for a CMS re-publication: it changes the source file
+and the values in the rows, not their number. With "flaky", the first request for each page answers 503.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
+import os
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
@@ -16,6 +19,7 @@ from urllib.parse import parse_qs, urlparse
 TOTAL = int(sys.argv[1])
 FLAKY = len(sys.argv) > 3 and sys.argv[2] == "flaky"
 PORT_FILE = sys.argv[-1]
+REVISION = int(os.environ.get("FAKE_REVISION", "1"))
 seen: set[str] = set()
 
 
@@ -37,6 +41,23 @@ class Handler(BaseHTTPRequestHandler):
         if url.path.endswith("/data/stats"):
             self._json(200, {"found_rows": TOTAL, "total_rows": TOTAL * 10})
             return
+        if url.path.endswith("/data-viewer"):
+            source = f"rows-{TOTAL}-revision-{REVISION}"
+            self._json(
+                200,
+                {
+                    "meta": {
+                        "data_file_name": f"{source}.csv",
+                        "data_file_meta_data": {
+                            "csvFileSHA1": hashlib.sha1(source.encode()).hexdigest(),
+                            "csvFileModifiedTime": 1_778_000_000 + REVISION,
+                        },
+                        "total_rows": TOTAL * 10,
+                    },
+                    "data": [],
+                },
+            )
+            return
         if url.path.endswith("/data"):
             if FLAKY and url.query not in seen:
                 seen.add(url.query)
@@ -45,7 +66,7 @@ class Handler(BaseHTTPRequestHandler):
             size = int(query.get("size", ["5000"])[0])
             offset = int(query.get("offset", ["0"])[0])
             rows = [
-                {"Prscrbr_NPI": str(1000000000 + i), "Tot_Clms": str(i + 11)}
+                {"Prscrbr_NPI": str(1000000000 + i), "Tot_Clms": str(i + 10 + REVISION)}
                 for i in range(offset, min(offset + size, TOTAL))
             ]
             self._json(200, rows)
